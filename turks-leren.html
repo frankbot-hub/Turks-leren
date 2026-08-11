@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Türkçe">
+<meta name="theme-color" content="#0F3D5C">
+<title>Türkçe Yolculuk — Turks leren</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%230F3D5C'/%3E%3Cpath d='M50 20 C35 20 25 35 25 50 C25 62 35 70 50 82 C65 70 75 62 75 50 C75 35 65 20 50 20 Z' fill='%23C6362F'/%3E%3Cpath d='M50 30 C42 32 37 40 38 50 C39 58 44 64 50 70' fill='none' stroke='%23F6EFE3' stroke-width='3'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --bosphorus:#0F3D5C;
+    --bosphorus-deep:#092A40;
+    --iznik:#1B9AA0;
+    --iznik-light:#5FC1C4;
+    --tulip:#C6362F;
+    --tulip-deep:#9E271F;
+    --sand:#F6EFE3;
+    --tile-white:#FFFDF8;
+    --ink:#1B2B33;
+    --ink-soft:#4B5D66;
+    --gold:#C9A24B;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--sand);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,'Avenir Next',Avenir,'Segoe UI',sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  .app{max-width:520px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;background:var(--sand);position:relative;}
+
+  .tile-strip{
+    height:14px;width:100%;
+    background-image:
+      linear-gradient(45deg, var(--iznik) 25%, transparent 25%, transparent 75%, var(--iznik) 75%),
+      linear-gradient(45deg, var(--iznik) 25%, transparent 25%, transparent 75%, var(--iznik) 75%);
+    background-size:14px 14px;
+    background-position:0 0, 7px 7px;
+    background-color:var(--tulip);
+    flex-shrink:0;
+  }
+
+  header{background:var(--bosphorus); color:var(--tile-white); padding:16px 20px 14px; position:relative; overflow:hidden;}
+  header::after{content:""; position:absolute; right:-30px; top:-30px; width:140px;height:140px;border-radius:50%; background:radial-gradient(circle, rgba(95,193,196,0.25), transparent 70%);}
+  .header-row{display:flex;align-items:center;justify-content:space-between;gap:12px;position:relative;z-index:1;}
+  h1{font-family:Georgia,'Iowan Old Style','Palatino Linotype',serif; font-size:22px; font-weight:600; margin:0; letter-spacing:0.2px;}
+  .tagline{font-size:12px;color:var(--iznik-light);margin-top:2px;letter-spacing:0.3px;}
+  .streak-badge{display:flex;align-items:center;gap:5px; background:rgba(255,255,255,0.1); border:1px solid rgba(201,162,75,0.5); border-radius:999px;padding:6px 12px; font-size:14px;font-weight:700;color:var(--gold); white-space:nowrap;}
+
+  nav.tabs{display:flex; background:var(--bosphorus-deep); position:sticky; top:0; z-index:5;}
+  nav.tabs button{flex:1; padding:11px 3px; background:none; border:none; color:rgba(255,255,255,0.55); font-size:11.5px; font-weight:600; cursor:pointer; border-bottom:3px solid transparent; font-family:inherit; letter-spacing:0.1px;}
+  nav.tabs button.active{color:var(--tile-white); border-bottom-color:var(--tulip);}
+
+  main{flex:1; padding:18px 16px 40px;}
+  .card{background:var(--tile-white); border-radius:16px; padding:20px 18px; box-shadow:0 2px 14px rgba(15,61,92,0.08); border:1px solid rgba(15,61,92,0.06); margin-bottom:16px;}
+
+  .wod-card{display:flex; align-items:center; justify-content:space-between; gap:10px; background:linear-gradient(135deg, var(--bosphorus), var(--bosphorus-deep)); color:var(--tile-white); border-radius:14px; padding:12px 16px; margin-bottom:14px;}
+  .wod-label{font-size:10.5px; text-transform:uppercase; letter-spacing:0.6px; color:var(--iznik-light); font-weight:700;}
+  .wod-word{font-family:Georgia,serif; font-size:18px; font-weight:600; margin-top:2px;}
+  .wod-nl{font-size:12px; color:rgba(255,255,255,0.7); margin-top:1px;}
+  .wod-speak{background:rgba(255,255,255,0.15); border:none; color:white; border-radius:50%; width:32px;height:32px; font-size:14px; cursor:pointer; flex-shrink:0;}
+
+  .filter-row{display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap;}
+  .filter-chip{font-size:11.5px; font-weight:600; padding:6px 11px; border-radius:999px; border:1px solid rgba(15,61,92,0.18); background:var(--tile-white); color:var(--ink-soft); cursor:pointer; font-family:inherit;}
+  .filter-chip.active{background:var(--bosphorus); color:white; border-color:var(--bosphorus);}
+
+  .practice-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .pill{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; padding:4px 10px; border-radius:999px; background:rgba(27,154,160,0.12); color:var(--iznik);}
+  .mode-toggle{display:flex; gap:6px;}
+  .mode-toggle button{font-size:12px; font-weight:600; padding:5px 10px; border-radius:8px; border:1px solid rgba(15,61,92,0.15); background:var(--tile-white); color:var(--ink-soft); cursor:pointer; font-family:inherit;}
+  .mode-toggle button.active{background:var(--bosphorus); color:var(--tile-white); border-color:var(--bosphorus);}
+  .mode-toggle button:disabled{opacity:0.45; cursor:default;}
+
+  .prompt-box{text-align:center; padding:18px 4px 22px;}
+  .prompt-lang{font-size:11px; font-weight:700; letter-spacing:1px; color:var(--ink-soft); text-transform:uppercase;}
+  .prompt-word{font-family:Georgia,'Iowan Old Style',serif; font-size:22px; font-weight:600; color:var(--bosphorus); margin-top:6px; display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; line-height:1.3;}
+  .prompt-word.small{font-size:18px;}
+  .speak-btn{background:var(--iznik); color:white; border:none; border-radius:50%; width:34px; height:34px; font-size:15px; cursor:pointer; flex-shrink:0;}
+  .speak-btn:active{transform:scale(0.94);}
+
+  .choices{display:flex; flex-direction:column; gap:10px; margin-top:6px;}
+  .choice-btn{padding:13px 14px; border-radius:12px; border:1.5px solid rgba(15,61,92,0.15); background:var(--tile-white); font-size:15.5px; text-align:left; cursor:pointer; font-family:inherit; color:var(--ink);}
+  .choice-btn.correct{border-color:var(--iznik); background:rgba(27,154,160,0.12); color:var(--iznik);}
+  .choice-btn.incorrect{border-color:var(--tulip); background:rgba(198,54,47,0.08); color:var(--tulip-deep);}
+  .choice-btn:disabled{cursor:default;}
+
+  .type-row{display:flex; gap:8px; margin-top:6px;}
+  .type-row input{flex:1; padding:13px 14px; border-radius:12px; border:1.5px solid rgba(15,61,92,0.2); font-size:16px; font-family:inherit; background:var(--tile-white); color:var(--ink);}
+  .type-row input.correct{border-color:var(--iznik); background:rgba(27,154,160,0.08);}
+  .type-row input.incorrect{border-color:var(--tulip); background:rgba(198,54,47,0.06);}
+  .type-row button{padding:0 18px; border-radius:12px; border:none; background:var(--bosphorus); color:white; font-weight:700; font-size:14px; cursor:pointer; font-family:inherit;}
+
+  .feedback{margin-top:14px; font-size:14px; min-height:20px; text-align:center;}
+  .feedback.ok{color:var(--iznik); font-weight:700;}
+  .feedback.no{color:var(--tulip-deep); font-weight:700;}
+
+  .next-btn{margin-top:16px; width:100%; padding:13px; border-radius:12px; border:none; background:var(--tulip); color:white; font-weight:700; font-size:15px; cursor:pointer; font-family:inherit; letter-spacing:0.2px;}
+  .next-btn:disabled{background:#d9cfc0; color:#a89d8a; cursor:default;}
+  .empty-pool{text-align:center; color:var(--ink-soft); font-size:13.5px; padding:20px 10px; line-height:1.6;}
+
+  .stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;}
+  .stat-box{background:var(--tile-white); border-radius:14px; padding:16px; text-align:center; box-shadow:0 2px 10px rgba(15,61,92,0.06);}
+  .stat-num{font-family:Georgia,serif; font-size:26px; font-weight:700; color:var(--bosphorus);}
+  .stat-label{font-size:11px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.4px; margin-top:2px;}
+
+  .goal-row{display:flex; align-items:center; justify-content:space-between; margin:8px 0 6px;}
+  .goal-row label{font-size:13px; font-weight:600; color:var(--ink-soft);}
+  .goal-row input{width:56px; padding:6px 8px; border-radius:8px; border:1px solid rgba(15,61,92,0.2); font-size:14px; text-align:center; font-family:inherit;}
+  .progressbar{height:12px; border-radius:999px; background:rgba(15,61,92,0.08); overflow:hidden; margin-top:8px;}
+  .progressbar-fill{height:100%; background:linear-gradient(90deg, var(--iznik), var(--iznik-light)); transition:width 0.3s;}
+
+  .cat-list{margin-top:18px;}
+  .cat-row{display:flex; align-items:center; gap:10px; margin-bottom:9px; font-size:12.5px;}
+  .cat-row .name{width:100px; flex-shrink:0; color:var(--ink-soft); font-weight:600;}
+  .cat-bar{flex:1; height:8px; border-radius:999px; background:rgba(15,61,92,0.08); overflow:hidden;}
+  .cat-bar-fill{height:100%; background:var(--gold);}
+  .cat-row .pct{width:34px; text-align:right; color:var(--ink-soft); font-size:11px;}
+
+  .reset-btn{margin-top:22px; width:100%; padding:11px; border-radius:12px; border:1px solid rgba(198,54,47,0.4); background:none; color:var(--tulip-deep); font-weight:600; font-size:13px; cursor:pointer; font-family:inherit;}
+  .tip{background:rgba(201,162,75,0.14); border:1px solid rgba(201,162,75,0.4); border-radius:12px; padding:12px 14px; font-size:12px; color:var(--ink-soft); margin-top:2px; line-height:1.5;}
+  .tip b{color:var(--ink);}
+
+  .loading-screen{position:fixed; inset:0; background:var(--bosphorus); color:var(--tile-white); display:flex; align-items:center; justify-content:center; font-size:14px; z-index:50;}
+
+  /* Grammar tab */
+  .grammar-progress{font-size:12.5px; color:var(--ink-soft); margin-bottom:14px; text-align:center;}
+  .lesson-row{display:flex; align-items:center; gap:12px; padding:14px 16px; border-radius:14px; background:var(--tile-white); margin-bottom:10px; box-shadow:0 2px 10px rgba(15,61,92,0.06); cursor:pointer; border:1px solid rgba(15,61,92,0.06);}
+  .lesson-row.locked{opacity:0.5; cursor:default;}
+  .lesson-num{width:30px;height:30px;border-radius:50%; background:var(--bosphorus); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; flex-shrink:0;}
+  .lesson-num.done{background:var(--iznik);}
+  .lesson-num.locked{background:#c9c1b0;}
+  .lesson-title{flex:1; font-size:14.5px; font-weight:600; color:var(--ink);}
+  .lesson-status{font-size:11px; color:var(--ink-soft);}
+  .back-link{font-size:13px; color:var(--iznik); font-weight:600; cursor:pointer; margin-bottom:12px; display:inline-block;}
+  .lesson-explain p{font-size:14px; line-height:1.6; color:var(--ink); margin:0 0 10px;}
+  .example-row{display:flex; justify-content:space-between; gap:10px; padding:9px 0; border-bottom:1px solid rgba(15,61,92,0.08); font-size:13.5px;}
+  .example-row:last-child{border-bottom:none;}
+  .example-tr{font-weight:600; color:var(--bosphorus);}
+  .example-nl{color:var(--ink-soft); text-align:right;}
+  .exceptions-box{background:rgba(198,54,47,0.06); border:1px solid rgba(198,54,47,0.25); border-radius:12px; padding:12px 14px; font-size:13px; color:var(--ink); line-height:1.55; margin-top:12px;}
+  .exceptions-box b{color:var(--tulip-deep);}
+  .start-quiz-btn{margin-top:16px; width:100%; padding:13px; border-radius:12px; border:none; background:var(--iznik); color:white; font-weight:700; font-size:14.5px; cursor:pointer; font-family:inherit;}
+  .quiz-progress{font-size:12px; color:var(--ink-soft); text-align:center; margin-bottom:10px;}
+  .quiz-result{text-align:center; padding:20px 10px;}
+  .quiz-result .score{font-family:Georgia,serif; font-size:38px; font-weight:700; color:var(--bosphorus); margin:10px 0;}
+  .quiz-result .verdict{font-size:15px; font-weight:700; margin-bottom:6px;}
+  .quiz-result .verdict.pass{color:var(--iznik);}
+  .quiz-result .verdict.fail{color:var(--tulip-deep);}
+
+  /* Toevoegen tab */
+  .form-group{margin-bottom:14px;}
+  .form-group label{display:block; font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-bottom:6px;}
+  .form-group input[type=text], .form-group select{width:100%; padding:11px 12px; border-radius:10px; border:1.5px solid rgba(15,61,92,0.18); font-size:15px; font-family:inherit; background:var(--tile-white); color:var(--ink);}
+  .kind-toggle{display:flex; gap:8px;}
+  .kind-toggle button{flex:1; padding:10px; border-radius:10px; border:1.5px solid rgba(15,61,92,0.18); background:var(--tile-white); color:var(--ink-soft); font-weight:600; font-size:13.5px; cursor:pointer; font-family:inherit;}
+  .kind-toggle button.active{background:var(--bosphorus); color:white; border-color:var(--bosphorus);}
+  .add-btn{width:100%; padding:13px; border-radius:12px; border:none; background:var(--tulip); color:white; font-weight:700; font-size:15px; cursor:pointer; font-family:inherit; margin-top:4px;}
+  .custom-list{margin-top:18px;}
+  .custom-item{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:11px 14px; border-radius:12px; background:var(--tile-white); box-shadow:0 1px 6px rgba(15,61,92,0.06); margin-bottom:8px;}
+  .custom-item .txt{font-size:13.5px;}
+  .custom-item .txt .tr{font-weight:600; color:var(--bosphorus);}
+  .custom-item .txt .nl{color:var(--ink-soft); font-size:12px;}
+  .custom-item .del{background:none; border:none; color:var(--tulip-deep); font-size:16px; cursor:pointer; padding:4px 6px;}
+  .empty-note{text-align:center; color:var(--ink-soft); font-size:13px; padding:16px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="loading" class="loading-screen">Woordenschat laden…</div>
+
+  <div class="tile-strip"></div>
+  <header>
+    <div class="header-row">
+      <div>
+        <h1>Türkçe Yolculuk</h1>
+        <div class="tagline">Jouw reis naar Turks, A1–A2</div>
+      </div>
+      <div class="streak-badge">🔥 <span id="streakNum">0</span></div>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="practice">Oefenen</button>
+    <button class="tab-btn" data-tab="grammar">Grammatica</button>
+    <button class="tab-btn" data-tab="progress">Voortgang</button>
+    <button class="tab-btn" data-tab="add">Toevoegen</button>
+  </nav>
+
+  <main>
+    <!-- ================= OEFENEN ================= -->
+    <section id="tab-practice">
+      <div id="wodCard" class="wod-card" style="display:none;">
+        <div>
+          <div class="wod-label">Woord van de dag</div>
+          <div class="wod-word" id="wodWord">—</div>
+          <div class="wod-nl" id="wodNl">—</div>
+        </div>
+        <button class="wod-speak" id="wodSpeak">🔊</button>
+      </div>
+
+      <div class="filter-row" id="filterRow">
+        <button class="filter-chip active" data-filter="all">Alles</button>
+        <button class="filter-chip" data-filter="vocab">Woordenschat</button>
+        <button class="filter-chip" data-filter="sentence">Zinnen</button>
+        <button class="filter-chip" data-filter="grammar">Grammatica</button>
+      </div>
+
+      <div class="card">
+        <div class="practice-meta">
+          <span class="pill" id="itemTypePill">Woord</span>
+          <div class="mode-toggle">
+            <button id="modeMC" class="active">Meerkeuze</button>
+            <button id="modeType">Typen</button>
+          </div>
+        </div>
+
+        <div id="practiceBody">
+          <div class="prompt-box">
+            <div class="prompt-lang" id="promptLang">Nederlands</div>
+            <div class="prompt-word" id="promptWordWrap">
+              <span id="promptText">—</span>
+              <button class="speak-btn" id="speakBtn" title="Uitspraak beluisteren">🔊</button>
+            </div>
+          </div>
+
+          <div id="choicesWrap" class="choices"></div>
+          <div id="typeWrap" class="type-row" style="display:none;">
+            <input type="text" id="typeInput" placeholder="Typ het antwoord…" autocapitalize="off" autocorrect="off" spellcheck="false">
+            <button id="typeSubmit">Check</button>
+          </div>
+
+          <div id="feedback" class="feedback"></div>
+          <button id="nextBtn" class="next-btn" disabled>Volgende →</button>
+        </div>
+
+        <div id="emptyPoolMsg" class="empty-pool" style="display:none;">
+          Er zit nog niets in deze categorie. Rond de bijbehorende grammaticales af, of voeg zelf woorden toe via "Toevoegen".
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= GRAMMATICA ================= -->
+    <section id="tab-grammar" style="display:none;">
+      <div id="grammarListView">
+        <div class="grammar-progress" id="grammarProgressLabel">0 van 10 lessen voltooid</div>
+        <div id="lessonList"></div>
+      </div>
+
+      <div id="lessonDetailView" style="display:none;">
+        <span class="back-link" id="backToList">← Terug naar lessen</span>
+        <div class="card">
+          <h2 id="lessonTitle" style="font-family:Georgia,serif;color:var(--bosphorus);margin:0 0 12px;font-size:19px;"></h2>
+          <div class="lesson-explain" id="lessonExplain"></div>
+          <div id="lessonExamples"></div>
+          <div class="exceptions-box" id="lessonExceptions"></div>
+          <button class="start-quiz-btn" id="startQuizBtn">Start toets</button>
+        </div>
+      </div>
+
+      <div id="lessonQuizView" style="display:none;">
+        <div class="card">
+          <div class="quiz-progress" id="quizProgressLabel"></div>
+          <div class="prompt-box">
+            <div class="prompt-word small" id="quizQuestionText">—</div>
+          </div>
+          <div id="quizChoicesWrap" class="choices"></div>
+          <div id="quizFeedback" class="feedback"></div>
+          <button id="quizNextBtn" class="next-btn" disabled>Volgende →</button>
+        </div>
+      </div>
+
+      <div id="lessonResultView" style="display:none;">
+        <div class="card quiz-result">
+          <div class="verdict" id="resultVerdict"></div>
+          <div class="score" id="resultScore"></div>
+          <button class="start-quiz-btn" id="resultContinueBtn"></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= VOORTGANG ================= -->
+    <section id="tab-progress" style="display:none;">
+      <div class="stat-grid">
+        <div class="stat-box"><div class="stat-num" id="statStreak">0</div><div class="stat-label">Streak (dagen)</div></div>
+        <div class="stat-box"><div class="stat-num" id="statBest">0</div><div class="stat-label">Beste streak</div></div>
+        <div class="stat-box"><div class="stat-num" id="statMastered">0</div><div class="stat-label">Beheerst</div></div>
+        <div class="stat-box"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Totaal geoefend</div></div>
+      </div>
+
+      <div class="card">
+        <div class="goal-row">
+          <label for="dailyGoalInput">Dagelijks doel (goede antwoorden)</label>
+          <input type="number" id="dailyGoalInput" min="3" max="50" value="10">
+        </div>
+        <div style="font-size:12.5px;color:var(--ink-soft);">Vandaag: <span id="todayCount">0</span> / <span id="todayGoalLabel">10</span></div>
+        <div class="progressbar"><div class="progressbar-fill" id="todayFill" style="width:0%;"></div></div>
+
+        <div style="font-size:12.5px;color:var(--ink-soft);margin-top:14px;">Grammaticalessen: <span id="lessonsCompletedLabel">0</span> / 10 voltooid</div>
+
+        <div class="cat-list" id="catList"></div>
+
+        <button class="reset-btn" id="resetBtn">Voortgang wissen</button>
+      </div>
+    </section>
+
+    <!-- ================= TOEVOEGEN ================= -->
+    <section id="tab-add" style="display:none;">
+      <div class="card">
+        <div class="form-group">
+          <label>Type</label>
+          <div class="kind-toggle">
+            <button id="kindWord" class="active">Los woord</button>
+            <button id="kindSentence">Hele zin</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="addNl">Nederlands</label>
+          <input type="text" id="addNl" placeholder="bijv. verjaardag">
+        </div>
+        <div class="form-group">
+          <label for="addTr">Turks</label>
+          <input type="text" id="addTr" placeholder="bijv. doğum günü">
+        </div>
+        <div class="form-group">
+          <label for="addCat">Categorie</label>
+          <select id="addCat"></select>
+        </div>
+        <div class="form-group" id="newCatGroup" style="display:none;">
+          <label for="addNewCat">Nieuwe categorienaam</label>
+          <input type="text" id="addNewCat" placeholder="bijv. Sport">
+        </div>
+        <button class="add-btn" id="addSubmitBtn">Toevoegen</button>
+      </div>
+
+      <div class="card">
+        <div style="font-weight:700;font-size:14.5px;color:var(--bosphorus);margin-bottom:4px;">Bulk toevoegen</div>
+        <div style="font-size:12px;color:var(--ink-soft);margin-bottom:12px;line-height:1.5;">Plak meerdere regels tegelijk, één woord of zin per regel. Woord/zin wordt automatisch herkend; alles komt in dezelfde categorie.</div>
+
+        <div class="form-group">
+          <label for="bulkDelim">Scheidingsteken tussen Nederlands en Turks</label>
+          <select id="bulkDelim">
+            <option value="tab">Tab (bijv. geplakt uit Excel)</option>
+            <option value="semicolon">Puntkomma ; </option>
+            <option value="equals">Is-teken =</option>
+            <option value="comma">Komma ,</option>
+            <option value="dash">Streepje -</option>
+            <option value="other">Anders…</option>
+          </select>
+        </div>
+        <div class="form-group" id="bulkDelimOtherGroup" style="display:none;">
+          <label for="bulkDelimOther">Eigen scheidingsteken</label>
+          <input type="text" id="bulkDelimOther" placeholder="bijv. |">
+        </div>
+
+        <div class="form-group">
+          <label for="bulkCat">Categorie voor de hele lijst</label>
+          <select id="bulkCat"></select>
+        </div>
+        <div class="form-group" id="bulkNewCatGroup" style="display:none;">
+          <label for="bulkNewCat">Nieuwe categorienaam</label>
+          <input type="text" id="bulkNewCat" placeholder="bijv. Sport">
+        </div>
+
+        <div class="form-group">
+          <label for="bulkText">Woorden/zinnen (één per regel)</label>
+          <textarea id="bulkText" rows="6" placeholder="hallo	merhaba&#10;dank je wel	teşekkür ederim&#10;Ik hou van Turkije.	Türkiye'yi seviyorum." style="width:100%;padding:11px 12px;border-radius:10px;border:1.5px solid rgba(15,61,92,0.18);font-size:14px;font-family:inherit;background:var(--tile-white);color:var(--ink);resize:vertical;"></textarea>
+        </div>
+
+        <button class="add-btn" id="bulkImportBtn">Importeren</button>
+        <div id="bulkResult" style="font-size:12.5px;color:var(--ink-soft);margin-top:10px;line-height:1.5;"></div>
+      </div>
+
+      <div class="custom-list" id="customList"></div>
+    </section>
+  </main>
+</div>
+<script>
+const VOCAB = [{"id": "v1", "cat": "Begroetingen", "nl": "hallo", "tr": "merhaba"}, {"id": "v2", "cat": "Begroetingen", "nl": "goedemorgen", "tr": "günaydın"}, {"id": "v3", "cat": "Begroetingen", "nl": "goedenavond", "tr": "iyi akşamlar"}, {"id": "v4", "cat": "Begroetingen", "nl": "tot ziens", "tr": "görüşürüz"}, {"id": "v5", "cat": "Begroetingen", "nl": "dank je wel", "tr": "teşekkür ederim"}, {"id": "v6", "cat": "Begroetingen", "nl": "alstublieft", "tr": "lütfen"}, {"id": "v7", "cat": "Begroetingen", "nl": "sorry", "tr": "özür dilerim"}, {"id": "v8", "cat": "Begroetingen", "nl": "ja", "tr": "evet"}, {"id": "v9", "cat": "Begroetingen", "nl": "nee", "tr": "hayır"}, {"id": "v10", "cat": "Getallen", "nl": "één", "tr": "bir"}, {"id": "v11", "cat": "Getallen", "nl": "twee", "tr": "iki"}, {"id": "v12", "cat": "Getallen", "nl": "drie", "tr": "üç"}, {"id": "v13", "cat": "Getallen", "nl": "vijf", "tr": "beş"}, {"id": "v14", "cat": "Getallen", "nl": "tien", "tr": "on"}, {"id": "v15", "cat": "Getallen", "nl": "honderd", "tr": "yüz"}, {"id": "v16", "cat": "Tijd", "nl": "vandaag", "tr": "bugün"}, {"id": "v17", "cat": "Tijd", "nl": "morgen", "tr": "yarın"}, {"id": "v18", "cat": "Tijd", "nl": "gisteren", "tr": "dün"}, {"id": "v19", "cat": "Tijd", "nl": "week", "tr": "hafta"}, {"id": "v20", "cat": "Tijd", "nl": "uur", "tr": "saat"}, {"id": "v21", "cat": "Eten", "nl": "water", "tr": "su"}, {"id": "v22", "cat": "Eten", "nl": "brood", "tr": "ekmek"}, {"id": "v23", "cat": "Eten", "nl": "thee", "tr": "çay"}, {"id": "v24", "cat": "Eten", "nl": "koffie", "tr": "kahve"}, {"id": "v25", "cat": "Eten", "nl": "vlees", "tr": "et"}, {"id": "v26", "cat": "Eten", "nl": "groente", "tr": "sebze"}, {"id": "v27", "cat": "Eten", "nl": "lekker", "tr": "lezzetli"}, {"id": "v28", "cat": "Reizen", "nl": "vliegtuig", "tr": "uçak"}, {"id": "v29", "cat": "Reizen", "nl": "trein", "tr": "tren"}, {"id": "v30", "cat": "Reizen", "nl": "hotel", "tr": "otel"}, {"id": "v31", "cat": "Reizen", "nl": "straat", "tr": "sokak"}, {"id": "v32", "cat": "Reizen", "nl": "links", "tr": "sol"}, {"id": "v33", "cat": "Reizen", "nl": "rechts", "tr": "sağ"}, {"id": "v34", "cat": "Reizen", "nl": "ver", "tr": "uzak"}, {"id": "v35", "cat": "Reizen", "nl": "dichtbij", "tr": "yakın"}, {"id": "v36", "cat": "Familie", "nl": "moeder", "tr": "anne"}, {"id": "v37", "cat": "Familie", "nl": "vader", "tr": "baba"}, {"id": "v38", "cat": "Familie", "nl": "broer/zus", "tr": "kardeş"}, {"id": "v39", "cat": "Familie", "nl": "vriend", "tr": "arkadaş"}, {"id": "v40", "cat": "Familie", "nl": "kind", "tr": "çocuk"}, {"id": "v41", "cat": "Werkwoorden", "nl": "willen", "tr": "istemek"}, {"id": "v42", "cat": "Werkwoorden", "nl": "gaan", "tr": "gitmek"}, {"id": "v43", "cat": "Werkwoorden", "nl": "eten", "tr": "yemek"}, {"id": "v44", "cat": "Werkwoorden", "nl": "drinken", "tr": "içmek"}, {"id": "v45", "cat": "Werkwoorden", "nl": "begrijpen", "tr": "anlamak"}, {"id": "v46", "cat": "Werkwoorden", "nl": "spreken", "tr": "konuşmak"}, {"id": "v47", "cat": "Basiswoorden", "nl": "huis", "tr": "ev"}, {"id": "v48", "cat": "Basiswoorden", "nl": "werk", "tr": "iş"}, {"id": "v49", "cat": "Basiswoorden", "nl": "geld", "tr": "para"}, {"id": "v50", "cat": "Basiswoorden", "nl": "mooi", "tr": "güzel"}, {"id": "v51", "cat": "Begroetingen", "nl": "goede dag", "tr": "iyi günler"}, {"id": "v52", "cat": "Begroetingen", "nl": "welkom", "tr": "hoş geldiniz"}, {"id": "v53", "cat": "Begroetingen", "nl": "graag gedaan", "tr": "bir şey değil"}, {"id": "v54", "cat": "Begroetingen", "nl": "niet slecht", "tr": "fena değil"}, {"id": "v55", "cat": "Begroetingen", "nl": "meneer", "tr": "bey"}, {"id": "v56", "cat": "Begroetingen", "nl": "mevrouw", "tr": "hanım"}, {"id": "v57", "cat": "Begroetingen", "nl": "man (persoon)", "tr": "adam"}, {"id": "v58", "cat": "Begroetingen", "nl": "vrouw (persoon)", "tr": "kadın"}, {"id": "v59", "cat": "Begroetingen", "nl": "meisje", "tr": "kız"}, {"id": "v60", "cat": "Begroetingen", "nl": "jongen/man", "tr": "erkek"}, {"id": "v61", "cat": "Werkwoorden", "nl": "komen", "tr": "gelmek"}, {"id": "v62", "cat": "Werkwoorden", "nl": "lezen", "tr": "okumak"}, {"id": "v63", "cat": "Werkwoorden", "nl": "schrijven", "tr": "yazmak"}, {"id": "v64", "cat": "Werkwoorden", "nl": "vegen/wissen", "tr": "silmek"}, {"id": "v65", "cat": "Werkwoorden", "nl": "openen", "tr": "açmak"}, {"id": "v66", "cat": "Werkwoorden", "nl": "sluiten", "tr": "kapatmak"}, {"id": "v67", "cat": "Werkwoorden", "nl": "nemen/kopen", "tr": "almak"}, {"id": "v68", "cat": "Werkwoorden", "nl": "geven", "tr": "vermek"}, {"id": "v69", "cat": "Werkwoorden", "nl": "leggen/zetten", "tr": "koymak"}, {"id": "v70", "cat": "Werkwoorden", "nl": "zitten", "tr": "oturmak"}, {"id": "v71", "cat": "Werkwoorden", "nl": "opstaan", "tr": "kalkmak"}, {"id": "v72", "cat": "Werkwoorden", "nl": "kijken", "tr": "bakmak"}, {"id": "v73", "cat": "Werkwoorden", "nl": "zien", "tr": "görmek"}, {"id": "v74", "cat": "Werkwoorden", "nl": "doen/maken", "tr": "yapmak"}, {"id": "v75", "cat": "Werkwoorden", "nl": "werken", "tr": "çalışmak"}, {"id": "v76", "cat": "Werkwoorden", "nl": "houden van", "tr": "sevmek"}, {"id": "v77", "cat": "Werkwoorden", "nl": "lopen", "tr": "yürümek"}, {"id": "v78", "cat": "Werkwoorden", "nl": "rennen", "tr": "koşmak"}, {"id": "v79", "cat": "Werkwoorden", "nl": "zwemmen", "tr": "yüzmek"}, {"id": "v80", "cat": "Werkwoorden", "nl": "slapen", "tr": "uyumak"}, {"id": "v81", "cat": "Werkwoorden", "nl": "wakker worden", "tr": "uyanmak"}, {"id": "v82", "cat": "Werkwoorden", "nl": "spelen", "tr": "oynamak"}, {"id": "v83", "cat": "Werkwoorden", "nl": "luisteren", "tr": "dinlemek"}, {"id": "v84", "cat": "Werkwoorden", "nl": "vragen", "tr": "sormak"}, {"id": "v85", "cat": "Werkwoorden", "nl": "zeggen", "tr": "söylemek"}, {"id": "v86", "cat": "Werkwoorden", "nl": "tv kijken/toekijken", "tr": "seyretmek"}, {"id": "v87", "cat": "Basiswoorden", "nl": "raam/glas", "tr": "cam"}, {"id": "v88", "cat": "Basiswoorden", "nl": "opa", "tr": "dede"}, {"id": "v89", "cat": "Basiswoorden", "nl": "muis", "tr": "fare"}, {"id": "v90", "cat": "Basiswoorden", "nl": "berg", "tr": "dağ"}, {"id": "v91", "cat": "Basiswoorden", "nl": "regen", "tr": "yağmur"}, {"id": "v92", "cat": "Basiswoorden", "nl": "zwembad", "tr": "havuz"}, {"id": "v93", "cat": "Basiswoorden", "nl": "licht", "tr": "ışık"}, {"id": "v94", "cat": "Basiswoorden", "nl": "koe", "tr": "inek"}, {"id": "v95", "cat": "Basiswoorden", "nl": "pen", "tr": "kalem"}, {"id": "v96", "cat": "Basiswoorden", "nl": "ooievaar", "tr": "leylek"}, {"id": "v97", "cat": "Basiswoorden", "nl": "tafel", "tr": "masa"}, {"id": "v98", "cat": "Basiswoorden", "nl": "rivier", "tr": "nehir"}, {"id": "v99", "cat": "Basiswoorden", "nl": "school", "tr": "okul"}, {"id": "v100", "cat": "Basiswoorden", "nl": "student", "tr": "öğrenci"}, {"id": "v101", "cat": "Basiswoorden", "nl": "foto/tekening", "tr": "resim"}, {"id": "v102", "cat": "Basiswoorden", "nl": "melk", "tr": "süt"}, {"id": "v103", "cat": "Basiswoorden", "nl": "fles", "tr": "şişe"}, {"id": "v104", "cat": "Basiswoorden", "nl": "kip", "tr": "tavuk"}, {"id": "v105", "cat": "Basiswoorden", "nl": "vlieger", "tr": "uçurtma"}, {"id": "v106", "cat": "Basiswoorden", "nl": "strijkijzer", "tr": "ütü"}, {"id": "v107", "cat": "Basiswoorden", "nl": "koffer", "tr": "valiz"}, {"id": "v108", "cat": "Basiswoorden", "nl": "kussen", "tr": "yastık"}, {"id": "v109", "cat": "Kalender", "nl": "maandag", "tr": "pazartesi"}, {"id": "v110", "cat": "Kalender", "nl": "dinsdag", "tr": "salı"}, {"id": "v111", "cat": "Kalender", "nl": "woensdag", "tr": "çarşamba"}, {"id": "v112", "cat": "Kalender", "nl": "donderdag", "tr": "perşembe"}, {"id": "v113", "cat": "Kalender", "nl": "vrijdag", "tr": "cuma"}, {"id": "v114", "cat": "Kalender", "nl": "zaterdag", "tr": "cumartesi"}, {"id": "v115", "cat": "Kalender", "nl": "zondag", "tr": "pazar"}, {"id": "v116", "cat": "Kalender", "nl": "januari", "tr": "ocak"}, {"id": "v117", "cat": "Kalender", "nl": "februari", "tr": "şubat"}, {"id": "v118", "cat": "Kalender", "nl": "maart", "tr": "mart"}, {"id": "v119", "cat": "Kalender", "nl": "april", "tr": "nisan"}, {"id": "v120", "cat": "Kalender", "nl": "mei", "tr": "mayıs"}, {"id": "v121", "cat": "Kalender", "nl": "juni", "tr": "haziran"}, {"id": "v122", "cat": "Kalender", "nl": "juli", "tr": "temmuz"}, {"id": "v123", "cat": "Kalender", "nl": "augustus", "tr": "ağustos"}, {"id": "v124", "cat": "Kalender", "nl": "september", "tr": "eylül"}, {"id": "v125", "cat": "Kalender", "nl": "oktober", "tr": "ekim"}, {"id": "v126", "cat": "Kalender", "nl": "november", "tr": "kasım"}, {"id": "v127", "cat": "Kalender", "nl": "december", "tr": "aralık"}, {"id": "v128", "cat": "Kalender", "nl": "lente", "tr": "ilkbahar"}, {"id": "v129", "cat": "Kalender", "nl": "zomer", "tr": "yaz"}, {"id": "v130", "cat": "Kalender", "nl": "herfst", "tr": "sonbahar"}, {"id": "v131", "cat": "Kalender", "nl": "winter", "tr": "kış"}, {"id": "v132", "cat": "Kalender", "nl": "dag (tijdseenheid)", "tr": "gün"}, {"id": "v133", "cat": "Kalender", "nl": "maand (tijdseenheid)", "tr": "ay"}, {"id": "v134", "cat": "Kalender", "nl": "jaar", "tr": "yıl"}, {"id": "v135", "cat": "Kalender", "nl": "geleden/ervoor", "tr": "önce"}, {"id": "v136", "cat": "Kalender", "nl": "later/erna", "tr": "sonra"}, {"id": "v137", "cat": "Kalender", "nl": "volgend", "tr": "gelecek"}, {"id": "v138", "cat": "Kalender", "nl": "vorig", "tr": "geçen"}, {"id": "v139", "cat": "Kalender", "nl": "weekend", "tr": "hafta sonu"}, {"id": "v140", "cat": "Getallen", "nl": "nul", "tr": "sıfır"}, {"id": "v141", "cat": "Getallen", "nl": "vier", "tr": "dört"}, {"id": "v142", "cat": "Getallen", "nl": "zes", "tr": "altı"}, {"id": "v143", "cat": "Getallen", "nl": "zeven", "tr": "yedi"}, {"id": "v144", "cat": "Getallen", "nl": "acht", "tr": "sekiz"}, {"id": "v145", "cat": "Getallen", "nl": "negen", "tr": "dokuz"}, {"id": "v146", "cat": "Getallen", "nl": "twintig", "tr": "yirmi"}, {"id": "v147", "cat": "Getallen", "nl": "dertig", "tr": "otuz"}, {"id": "v148", "cat": "Getallen", "nl": "veertig", "tr": "kırk"}, {"id": "v149", "cat": "Getallen", "nl": "vijftig", "tr": "elli"}, {"id": "v150", "cat": "Getallen", "nl": "zestig", "tr": "altmış"}, {"id": "v151", "cat": "Getallen", "nl": "zeventig", "tr": "yetmiş"}, {"id": "v152", "cat": "Getallen", "nl": "tachtig", "tr": "seksen"}, {"id": "v153", "cat": "Getallen", "nl": "negentig", "tr": "doksan"}, {"id": "v154", "cat": "Getallen", "nl": "duizend", "tr": "bin"}, {"id": "v155", "cat": "Getallen", "nl": "miljoen", "tr": "milyon"}];
+const SENTENCES = [{"id": "s1", "cat": "Zinnen", "nl": "Hoe gaat het met je?", "tr": "Nasılsın?"}, {"id": "s2", "cat": "Zinnen", "nl": "Mijn naam is Frank.", "tr": "Benim adım Frank."}, {"id": "s3", "cat": "Zinnen", "nl": "Ik begrijp het niet.", "tr": "Anlamıyorum."}, {"id": "s4", "cat": "Zinnen", "nl": "Waar is het toilet?", "tr": "Tuvalet nerede?"}, {"id": "s5", "cat": "Zinnen", "nl": "Hoeveel kost dit?", "tr": "Bu ne kadar?"}, {"id": "s6", "cat": "Zinnen", "nl": "Ik wil water, alstublieft.", "tr": "Su istiyorum, lütfen."}, {"id": "s7", "cat": "Zinnen", "nl": "Ik spreek een beetje Turks.", "tr": "Biraz Türkçe konuşuyorum."}, {"id": "s8", "cat": "Zinnen", "nl": "Kunt u dat herhalen?", "tr": "Tekrar edebilir misiniz?"}, {"id": "s9", "cat": "Zinnen", "nl": "Ik hou van Turkije.", "tr": "Türkiye'yi seviyorum."}, {"id": "s10", "cat": "Zinnen", "nl": "Tot morgen.", "tr": "Yarın görüşürüz."}, {"id": "s11", "cat": "Kennismaking", "nl": "Waar kom je vandaan?", "tr": "Nerelisin?"}, {"id": "s12", "cat": "Kennismaking", "nl": "Aangenaam.", "tr": "Memnun oldum."}, {"id": "s13", "cat": "Kennismaking", "nl": "Tot ziens (tot we elkaar weer treffen).", "tr": "Görüşmek üzere."}, {"id": "s14", "cat": "Kennismaking", "nl": "Welkom.", "tr": "Hoş geldiniz."}, {"id": "s15", "cat": "Kennismaking", "nl": "Dank je (reactie op welkom).", "tr": "Hoş bulduk."}, {"id": "s16", "cat": "Kennismaking", "nl": "Graag gedaan.", "tr": "Rica ederim."}, {"id": "s17", "cat": "Kennismaking", "nl": "Hoeveel zijn er?", "tr": "Kaç tane var?"}, {"id": "s18", "cat": "Kennismaking", "nl": "Wat is uw naam? (formeel)", "tr": "Adınız ne?"}, {"id": "s19", "cat": "Kennismaking", "nl": "Wat is uw achternaam? (formeel)", "tr": "Soyadınız ne?"}, {"id": "s20", "cat": "Kennismaking", "nl": "Ga zitten, alsjeblieft.", "tr": "Lütfen otur."}, {"id": "s21", "cat": "Kennismaking", "nl": "Ren niet, alsjeblieft.", "tr": "Lütfen koşma."}];
+const BUILTIN_CATEGORIES = ["Basiswoorden", "Begroetingen", "Eten", "Familie", "Getallen", "Reizen", "Tijd", "Werkwoorden", "Zinnen"];
+const VERBS = [{"inf": "olmak", "nl": "zijn/worden", "stem": "ol", "forms": {"present": {"affirmative": {"ben": "oluyorum", "sen": "oluyorsun", "o": "oluyor", "biz": "oluyoruz", "siz": "oluyorsunuz", "onlar": "oluyorlar"}, "negative": {"ben": "olmuyorum", "sen": "olmuyorsun", "o": "olmuyor", "biz": "olmuyoruz", "siz": "olmuyorsunuz", "onlar": "olmuyorlar"}, "question": {"ben": "oluyor muyum?", "sen": "oluyor musun?", "o": "oluyor mu?", "biz": "oluyor muyuz?", "siz": "oluyor musunuz?", "onlar": "oluyorlar mı?"}}, "past": {"affirmative": {"ben": "oldum", "sen": "oldun", "o": "oldu", "biz": "olduk", "siz": "oldunuz", "onlar": "oldular"}, "negative": {"ben": "olmadım", "sen": "olmadın", "o": "olmadı", "biz": "olmadık", "siz": "olmadınız", "onlar": "olmadılar"}, "question": {"ben": "oldum mu?", "sen": "oldun mu?", "o": "oldu mu?", "biz": "olduk mu?", "siz": "oldunuz mu?", "onlar": "oldular mı?"}}, "future": {"affirmative": {"ben": "olacağım", "sen": "olacaksın", "o": "olacak", "biz": "olacağız", "siz": "olacaksınız", "onlar": "olacaklar"}, "negative": {"ben": "olmayacağım", "sen": "olmayacaksın", "o": "olmayacak", "biz": "olmayacağız", "siz": "olmayacaksınız", "onlar": "olmayacaklar"}, "question": {"ben": "olacak mıyım?", "sen": "olacak mısın?", "o": "olacak mı?", "biz": "olacak mıyız?", "siz": "olacak mısınız?", "onlar": "olacaklar mı?"}}}}, {"inf": "yapmak", "nl": "doen/maken", "stem": "yap", "forms": {"present": {"affirmative": {"ben": "yapıyorum", "sen": "yapıyorsun", "o": "yapıyor", "biz": "yapıyoruz", "siz": "yapıyorsunuz", "onlar": "yapıyorlar"}, "negative": {"ben": "yapmıyorum", "sen": "yapmıyorsun", "o": "yapmıyor", "biz": "yapmıyoruz", "siz": "yapmıyorsunuz", "onlar": "yapmıyorlar"}, "question": {"ben": "yapıyor muyum?", "sen": "yapıyor musun?", "o": "yapıyor mu?", "biz": "yapıyor muyuz?", "siz": "yapıyor musunuz?", "onlar": "yapıyorlar mı?"}}, "past": {"affirmative": {"ben": "yaptım", "sen": "yaptın", "o": "yaptı", "biz": "yaptık", "siz": "yaptınız", "onlar": "yaptılar"}, "negative": {"ben": "yapmadım", "sen": "yapmadın", "o": "yapmadı", "biz": "yapmadık", "siz": "yapmadınız", "onlar": "yapmadılar"}, "question": {"ben": "yaptım mı?", "sen": "yaptın mı?", "o": "yaptı mı?", "biz": "yaptık mı?", "siz": "yaptınız mı?", "onlar": "yaptılar mı?"}}, "future": {"affirmative": {"ben": "yapacağım", "sen": "yapacaksın", "o": "yapacak", "biz": "yapacağız", "siz": "yapacaksınız", "onlar": "yapacaklar"}, "negative": {"ben": "yapmayacağım", "sen": "yapmayacaksın", "o": "yapmayacak", "biz": "yapmayacağız", "siz": "yapmayacaksınız", "onlar": "yapmayacaklar"}, "question": {"ben": "yapacak mıyım?", "sen": "yapacak mısın?", "o": "yapacak mı?", "biz": "yapacak mıyız?", "siz": "yapacak mısınız?", "onlar": "yapacaklar mı?"}}}}, {"inf": "gitmek", "nl": "gaan", "stem": "git", "forms": {"present": {"affirmative": {"ben": "gidiyorum", "sen": "gidiyorsun", "o": "gidiyor", "biz": "gidiyoruz", "siz": "gidiyorsunuz", "onlar": "gidiyorlar"}, "negative": {"ben": "gitmiyorum", "sen": "gitmiyorsun", "o": "gitmiyor", "biz": "gitmiyoruz", "siz": "gitmiyorsunuz", "onlar": "gitmiyorlar"}, "question": {"ben": "gidiyor muyum?", "sen": "gidiyor musun?", "o": "gidiyor mu?", "biz": "gidiyor muyuz?", "siz": "gidiyor musunuz?", "onlar": "gidiyorlar mı?"}}, "past": {"affirmative": {"ben": "gittim", "sen": "gittin", "o": "gitti", "biz": "gittik", "siz": "gittiniz", "onlar": "gittiler"}, "negative": {"ben": "gitmedim", "sen": "gitmedin", "o": "gitmedi", "biz": "gitmedik", "siz": "gitmediniz", "onlar": "gitmediler"}, "question": {"ben": "gittim mi?", "sen": "gittin mi?", "o": "gitti mi?", "biz": "gittik mi?", "siz": "gittiniz mi?", "onlar": "gittiler mi?"}}, "future": {"affirmative": {"ben": "gideceğim", "sen": "gideceksin", "o": "gidecek", "biz": "gideceğiz", "siz": "gideceksiniz", "onlar": "gidecekler"}, "negative": {"ben": "gitmeyeceğim", "sen": "gitmeyeceksin", "o": "gitmeyecek", "biz": "gitmeyeceğiz", "siz": "gitmeyeceksiniz", "onlar": "gitmeyecekler"}, "question": {"ben": "gidecek miyim?", "sen": "gidecek misin?", "o": "gidecek mi?", "biz": "gidecek miyiz?", "siz": "gidecek misiniz?", "onlar": "gidecekler mi?"}}}}, {"inf": "gelmek", "nl": "komen", "stem": "gel", "forms": {"present": {"affirmative": {"ben": "geliyorum", "sen": "geliyorsun", "o": "geliyor", "biz": "geliyoruz", "siz": "geliyorsunuz", "onlar": "geliyorlar"}, "negative": {"ben": "gelmiyorum", "sen": "gelmiyorsun", "o": "gelmiyor", "biz": "gelmiyoruz", "siz": "gelmiyorsunuz", "onlar": "gelmiyorlar"}, "question": {"ben": "geliyor muyum?", "sen": "geliyor musun?", "o": "geliyor mu?", "biz": "geliyor muyuz?", "siz": "geliyor musunuz?", "onlar": "geliyorlar mı?"}}, "past": {"affirmative": {"ben": "geldim", "sen": "geldin", "o": "geldi", "biz": "geldik", "siz": "geldiniz", "onlar": "geldiler"}, "negative": {"ben": "gelmedim", "sen": "gelmedin", "o": "gelmedi", "biz": "gelmedik", "siz": "gelmediniz", "onlar": "gelmediler"}, "question": {"ben": "geldim mi?", "sen": "geldin mi?", "o": "geldi mi?", "biz": "geldik mi?", "siz": "geldiniz mi?", "onlar": "geldiler mi?"}}, "future": {"affirmative": {"ben": "geleceğim", "sen": "geleceksin", "o": "gelecek", "biz": "geleceğiz", "siz": "geleceksiniz", "onlar": "gelecekler"}, "negative": {"ben": "gelmeyeceğim", "sen": "gelmeyeceksin", "o": "gelmeyecek", "biz": "gelmeyeceğiz", "siz": "gelmeyeceksiniz", "onlar": "gelmeyecekler"}, "question": {"ben": "gelecek miyim?", "sen": "gelecek misin?", "o": "gelecek mi?", "biz": "gelecek miyiz?", "siz": "gelecek misiniz?", "onlar": "gelecekler mi?"}}}}, {"inf": "görmek", "nl": "zien", "stem": "gör", "forms": {"present": {"affirmative": {"ben": "görüyorum", "sen": "görüyorsun", "o": "görüyor", "biz": "görüyoruz", "siz": "görüyorsunuz", "onlar": "görüyorlar"}, "negative": {"ben": "görmüyorum", "sen": "görmüyorsun", "o": "görmüyor", "biz": "görmüyoruz", "siz": "görmüyorsunuz", "onlar": "görmüyorlar"}, "question": {"ben": "görüyor muyum?", "sen": "görüyor musun?", "o": "görüyor mu?", "biz": "görüyor muyuz?", "siz": "görüyor musunuz?", "onlar": "görüyorlar mı?"}}, "past": {"affirmative": {"ben": "gördüm", "sen": "gördün", "o": "gördü", "biz": "gördük", "siz": "gördünüz", "onlar": "gördüler"}, "negative": {"ben": "görmedim", "sen": "görmedin", "o": "görmedi", "biz": "görmedik", "siz": "görmediniz", "onlar": "görmediler"}, "question": {"ben": "gördüm mü?", "sen": "gördün mü?", "o": "gördü mü?", "biz": "gördük mü?", "siz": "gördünüz mü?", "onlar": "gördüler mi?"}}, "future": {"affirmative": {"ben": "göreceğim", "sen": "göreceksin", "o": "görecek", "biz": "göreceğiz", "siz": "göreceksiniz", "onlar": "görecekler"}, "negative": {"ben": "görmeyeceğim", "sen": "görmeyeceksin", "o": "görmeyecek", "biz": "görmeyeceğiz", "siz": "görmeyeceksiniz", "onlar": "görmeyecekler"}, "question": {"ben": "görecek miyim?", "sen": "görecek misin?", "o": "görecek mi?", "biz": "görecek miyiz?", "siz": "görecek misiniz?", "onlar": "görecekler mi?"}}}}, {"inf": "bilmek", "nl": "weten", "stem": "bil", "forms": {"present": {"affirmative": {"ben": "biliyorum", "sen": "biliyorsun", "o": "biliyor", "biz": "biliyoruz", "siz": "biliyorsunuz", "onlar": "biliyorlar"}, "negative": {"ben": "bilmiyorum", "sen": "bilmiyorsun", "o": "bilmiyor", "biz": "bilmiyoruz", "siz": "bilmiyorsunuz", "onlar": "bilmiyorlar"}, "question": {"ben": "biliyor muyum?", "sen": "biliyor musun?", "o": "biliyor mu?", "biz": "biliyor muyuz?", "siz": "biliyor musunuz?", "onlar": "biliyorlar mı?"}}, "past": {"affirmative": {"ben": "bildim", "sen": "bildin", "o": "bildi", "biz": "bildik", "siz": "bildiniz", "onlar": "bildiler"}, "negative": {"ben": "bilmedim", "sen": "bilmedin", "o": "bilmedi", "biz": "bilmedik", "siz": "bilmediniz", "onlar": "bilmediler"}, "question": {"ben": "bildim mi?", "sen": "bildin mi?", "o": "bildi mi?", "biz": "bildik mi?", "siz": "bildiniz mi?", "onlar": "bildiler mi?"}}, "future": {"affirmative": {"ben": "bileceğim", "sen": "bileceksin", "o": "bilecek", "biz": "bileceğiz", "siz": "bileceksiniz", "onlar": "bilecekler"}, "negative": {"ben": "bilmeyeceğim", "sen": "bilmeyeceksin", "o": "bilmeyecek", "biz": "bilmeyeceğiz", "siz": "bilmeyeceksiniz", "onlar": "bilmeyecekler"}, "question": {"ben": "bilecek miyim?", "sen": "bilecek misin?", "o": "bilecek mi?", "biz": "bilecek miyiz?", "siz": "bilecek misiniz?", "onlar": "bilecekler mi?"}}}}, {"inf": "istemek", "nl": "willen", "stem": "iste", "forms": {"present": {"affirmative": {"ben": "istiyorum", "sen": "istiyorsun", "o": "istiyor", "biz": "istiyoruz", "siz": "istiyorsunuz", "onlar": "istiyorlar"}, "negative": {"ben": "istemiyorum", "sen": "istemiyorsun", "o": "istemiyor", "biz": "istemiyoruz", "siz": "istemiyorsunuz", "onlar": "istemiyorlar"}, "question": {"ben": "istiyor muyum?", "sen": "istiyor musun?", "o": "istiyor mu?", "biz": "istiyor muyuz?", "siz": "istiyor musunuz?", "onlar": "istiyorlar mı?"}}, "past": {"affirmative": {"ben": "istedim", "sen": "istedin", "o": "istedi", "biz": "istedik", "siz": "istediniz", "onlar": "istediler"}, "negative": {"ben": "istemedim", "sen": "istemedin", "o": "istemedi", "biz": "istemedik", "siz": "istemediniz", "onlar": "istemediler"}, "question": {"ben": "istedim mi?", "sen": "istedin mi?", "o": "istedi mi?", "biz": "istedik mi?", "siz": "istediniz mi?", "onlar": "istediler mi?"}}, "future": {"affirmative": {"ben": "isteyeceğim", "sen": "isteyeceksin", "o": "isteyecek", "biz": "isteyeceğiz", "siz": "isteyeceksiniz", "onlar": "isteyecekler"}, "negative": {"ben": "istemeyeceğim", "sen": "istemeyeceksin", "o": "istemeyecek", "biz": "istemeyeceğiz", "siz": "istemeyeceksiniz", "onlar": "istemeyecekler"}, "question": {"ben": "isteyecek miyim?", "sen": "isteyecek misin?", "o": "isteyecek mi?", "biz": "isteyecek miyiz?", "siz": "isteyecek misiniz?", "onlar": "isteyecekler mi?"}}}}, {"inf": "almak", "nl": "nemen/kopen", "stem": "al", "forms": {"present": {"affirmative": {"ben": "alıyorum", "sen": "alıyorsun", "o": "alıyor", "biz": "alıyoruz", "siz": "alıyorsunuz", "onlar": "alıyorlar"}, "negative": {"ben": "almıyorum", "sen": "almıyorsun", "o": "almıyor", "biz": "almıyoruz", "siz": "almıyorsunuz", "onlar": "almıyorlar"}, "question": {"ben": "alıyor muyum?", "sen": "alıyor musun?", "o": "alıyor mu?", "biz": "alıyor muyuz?", "siz": "alıyor musunuz?", "onlar": "alıyorlar mı?"}}, "past": {"affirmative": {"ben": "aldım", "sen": "aldın", "o": "aldı", "biz": "aldık", "siz": "aldınız", "onlar": "aldılar"}, "negative": {"ben": "almadım", "sen": "almadın", "o": "almadı", "biz": "almadık", "siz": "almadınız", "onlar": "almadılar"}, "question": {"ben": "aldım mı?", "sen": "aldın mı?", "o": "aldı mı?", "biz": "aldık mı?", "siz": "aldınız mı?", "onlar": "aldılar mı?"}}, "future": {"affirmative": {"ben": "alacağım", "sen": "alacaksın", "o": "alacak", "biz": "alacağız", "siz": "alacaksınız", "onlar": "alacaklar"}, "negative": {"ben": "almayacağım", "sen": "almayacaksın", "o": "almayacak", "biz": "almayacağız", "siz": "almayacaksınız", "onlar": "almayacaklar"}, "question": {"ben": "alacak mıyım?", "sen": "alacak mısın?", "o": "alacak mı?", "biz": "alacak mıyız?", "siz": "alacak mısınız?", "onlar": "alacaklar mı?"}}}}, {"inf": "vermek", "nl": "geven", "stem": "ver", "forms": {"present": {"affirmative": {"ben": "veriyorum", "sen": "veriyorsun", "o": "veriyor", "biz": "veriyoruz", "siz": "veriyorsunuz", "onlar": "veriyorlar"}, "negative": {"ben": "vermiyorum", "sen": "vermiyorsun", "o": "vermiyor", "biz": "vermiyoruz", "siz": "vermiyorsunuz", "onlar": "vermiyorlar"}, "question": {"ben": "veriyor muyum?", "sen": "veriyor musun?", "o": "veriyor mu?", "biz": "veriyor muyuz?", "siz": "veriyor musunuz?", "onlar": "veriyorlar mı?"}}, "past": {"affirmative": {"ben": "verdim", "sen": "verdin", "o": "verdi", "biz": "verdik", "siz": "verdiniz", "onlar": "verdiler"}, "negative": {"ben": "vermedim", "sen": "vermedin", "o": "vermedi", "biz": "vermedik", "siz": "vermediniz", "onlar": "vermediler"}, "question": {"ben": "verdim mi?", "sen": "verdin mi?", "o": "verdi mi?", "biz": "verdik mi?", "siz": "verdiniz mi?", "onlar": "verdiler mi?"}}, "future": {"affirmative": {"ben": "vereceğim", "sen": "vereceksin", "o": "verecek", "biz": "vereceğiz", "siz": "vereceksiniz", "onlar": "verecekler"}, "negative": {"ben": "vermeyeceğim", "sen": "vermeyeceksin", "o": "vermeyecek", "biz": "vermeyeceğiz", "siz": "vermeyeceksiniz", "onlar": "vermeyecekler"}, "question": {"ben": "verecek miyim?", "sen": "verecek misin?", "o": "verecek mi?", "biz": "verecek miyiz?", "siz": "verecek misiniz?", "onlar": "verecekler mi?"}}}}, {"inf": "bulmak", "nl": "vinden", "stem": "bul", "forms": {"present": {"affirmative": {"ben": "buluyorum", "sen": "buluyorsun", "o": "buluyor", "biz": "buluyoruz", "siz": "buluyorsunuz", "onlar": "buluyorlar"}, "negative": {"ben": "bulmuyorum", "sen": "bulmuyorsun", "o": "bulmuyor", "biz": "bulmuyoruz", "siz": "bulmuyorsunuz", "onlar": "bulmuyorlar"}, "question": {"ben": "buluyor muyum?", "sen": "buluyor musun?", "o": "buluyor mu?", "biz": "buluyor muyuz?", "siz": "buluyor musunuz?", "onlar": "buluyorlar mı?"}}, "past": {"affirmative": {"ben": "buldum", "sen": "buldun", "o": "buldu", "biz": "bulduk", "siz": "buldunuz", "onlar": "buldular"}, "negative": {"ben": "bulmadım", "sen": "bulmadın", "o": "bulmadı", "biz": "bulmadık", "siz": "bulmadınız", "onlar": "bulmadılar"}, "question": {"ben": "buldum mu?", "sen": "buldun mu?", "o": "buldu mu?", "biz": "bulduk mu?", "siz": "buldunuz mu?", "onlar": "buldular mı?"}}, "future": {"affirmative": {"ben": "bulacağım", "sen": "bulacaksın", "o": "bulacak", "biz": "bulacağız", "siz": "bulacaksınız", "onlar": "bulacaklar"}, "negative": {"ben": "bulmayacağım", "sen": "bulmayacaksın", "o": "bulmayacak", "biz": "bulmayacağız", "siz": "bulmayacaksınız", "onlar": "bulmayacaklar"}, "question": {"ben": "bulacak mıyım?", "sen": "bulacak mısın?", "o": "bulacak mı?", "biz": "bulacak mıyız?", "siz": "bulacak mısınız?", "onlar": "bulacaklar mı?"}}}}, {"inf": "bakmak", "nl": "kijken", "stem": "bak", "forms": {"present": {"affirmative": {"ben": "bakıyorum", "sen": "bakıyorsun", "o": "bakıyor", "biz": "bakıyoruz", "siz": "bakıyorsunuz", "onlar": "bakıyorlar"}, "negative": {"ben": "bakmıyorum", "sen": "bakmıyorsun", "o": "bakmıyor", "biz": "bakmıyoruz", "siz": "bakmıyorsunuz", "onlar": "bakmıyorlar"}, "question": {"ben": "bakıyor muyum?", "sen": "bakıyor musun?", "o": "bakıyor mu?", "biz": "bakıyor muyuz?", "siz": "bakıyor musunuz?", "onlar": "bakıyorlar mı?"}}, "past": {"affirmative": {"ben": "baktım", "sen": "baktın", "o": "baktı", "biz": "baktık", "siz": "baktınız", "onlar": "baktılar"}, "negative": {"ben": "bakmadım", "sen": "bakmadın", "o": "bakmadı", "biz": "bakmadık", "siz": "bakmadınız", "onlar": "bakmadılar"}, "question": {"ben": "baktım mı?", "sen": "baktın mı?", "o": "baktı mı?", "biz": "baktık mı?", "siz": "baktınız mı?", "onlar": "baktılar mı?"}}, "future": {"affirmative": {"ben": "bakacağım", "sen": "bakacaksın", "o": "bakacak", "biz": "bakacağız", "siz": "bakacaksınız", "onlar": "bakacaklar"}, "negative": {"ben": "bakmayacağım", "sen": "bakmayacaksın", "o": "bakmayacak", "biz": "bakmayacağız", "siz": "bakmayacaksınız", "onlar": "bakmayacaklar"}, "question": {"ben": "bakacak mıyım?", "sen": "bakacak mısın?", "o": "bakacak mı?", "biz": "bakacak mıyız?", "siz": "bakacak mısınız?", "onlar": "bakacaklar mı?"}}}}, {"inf": "konuşmak", "nl": "spreken", "stem": "konuş", "forms": {"present": {"affirmative": {"ben": "konuşuyorum", "sen": "konuşuyorsun", "o": "konuşuyor", "biz": "konuşuyoruz", "siz": "konuşuyorsunuz", "onlar": "konuşuyorlar"}, "negative": {"ben": "konuşmuyorum", "sen": "konuşmuyorsun", "o": "konuşmuyor", "biz": "konuşmuyoruz", "siz": "konuşmuyorsunuz", "onlar": "konuşmuyorlar"}, "question": {"ben": "konuşuyor muyum?", "sen": "konuşuyor musun?", "o": "konuşuyor mu?", "biz": "konuşuyor muyuz?", "siz": "konuşuyor musunuz?", "onlar": "konuşuyorlar mı?"}}, "past": {"affirmative": {"ben": "konuştum", "sen": "konuştun", "o": "konuştu", "biz": "konuştuk", "siz": "konuştunuz", "onlar": "konuştular"}, "negative": {"ben": "konuşmadım", "sen": "konuşmadın", "o": "konuşmadı", "biz": "konuşmadık", "siz": "konuşmadınız", "onlar": "konuşmadılar"}, "question": {"ben": "konuştum mu?", "sen": "konuştun mu?", "o": "konuştu mu?", "biz": "konuştuk mu?", "siz": "konuştunuz mu?", "onlar": "konuştular mı?"}}, "future": {"affirmative": {"ben": "konuşacağım", "sen": "konuşacaksın", "o": "konuşacak", "biz": "konuşacağız", "siz": "konuşacaksınız", "onlar": "konuşacaklar"}, "negative": {"ben": "konuşmayacağım", "sen": "konuşmayacaksın", "o": "konuşmayacak", "biz": "konuşmayacağız", "siz": "konuşmayacaksınız", "onlar": "konuşmayacaklar"}, "question": {"ben": "konuşacak mıyım?", "sen": "konuşacak mısın?", "o": "konuşacak mı?", "biz": "konuşacak mıyız?", "siz": "konuşacak mısınız?", "onlar": "konuşacaklar mı?"}}}}, {"inf": "anlamak", "nl": "begrijpen", "stem": "anla", "forms": {"present": {"affirmative": {"ben": "anlıyorum", "sen": "anlıyorsun", "o": "anlıyor", "biz": "anlıyoruz", "siz": "anlıyorsunuz", "onlar": "anlıyorlar"}, "negative": {"ben": "anlamıyorum", "sen": "anlamıyorsun", "o": "anlamıyor", "biz": "anlamıyoruz", "siz": "anlamıyorsunuz", "onlar": "anlamıyorlar"}, "question": {"ben": "anlıyor muyum?", "sen": "anlıyor musun?", "o": "anlıyor mu?", "biz": "anlıyor muyuz?", "siz": "anlıyor musunuz?", "onlar": "anlıyorlar mı?"}}, "past": {"affirmative": {"ben": "anladım", "sen": "anladın", "o": "anladı", "biz": "anladık", "siz": "anladınız", "onlar": "anladılar"}, "negative": {"ben": "anlamadım", "sen": "anlamadın", "o": "anlamadı", "biz": "anlamadık", "siz": "anlamadınız", "onlar": "anlamadılar"}, "question": {"ben": "anladım mı?", "sen": "anladın mı?", "o": "anladı mı?", "biz": "anladık mı?", "siz": "anladınız mı?", "onlar": "anladılar mı?"}}, "future": {"affirmative": {"ben": "anlayacağım", "sen": "anlayacaksın", "o": "anlayacak", "biz": "anlayacağız", "siz": "anlayacaksınız", "onlar": "anlayacaklar"}, "negative": {"ben": "anlamayacağım", "sen": "anlamayacaksın", "o": "anlamayacak", "biz": "anlamayacağız", "siz": "anlamayacaksınız", "onlar": "anlamayacaklar"}, "question": {"ben": "anlayacak mıyım?", "sen": "anlayacak mısın?", "o": "anlayacak mı?", "biz": "anlayacak mıyız?", "siz": "anlayacak mısınız?", "onlar": "anlayacaklar mı?"}}}}, {"inf": "yemek", "nl": "eten", "stem": "ye", "forms": {"present": {"affirmative": {"ben": "yiyorum", "sen": "yiyorsun", "o": "yiyor", "biz": "yiyoruz", "siz": "yiyorsunuz", "onlar": "yiyorlar"}, "negative": {"ben": "yemiyorum", "sen": "yemiyorsun", "o": "yemiyor", "biz": "yemiyoruz", "siz": "yemiyorsunuz", "onlar": "yemiyorlar"}, "question": {"ben": "yiyor muyum?", "sen": "yiyor musun?", "o": "yiyor mu?", "biz": "yiyor muyuz?", "siz": "yiyor musunuz?", "onlar": "yiyorlar mı?"}}, "past": {"affirmative": {"ben": "yedim", "sen": "yedin", "o": "yedi", "biz": "yedik", "siz": "yediniz", "onlar": "yediler"}, "negative": {"ben": "yemedim", "sen": "yemedin", "o": "yemedi", "biz": "yemedik", "siz": "yemediniz", "onlar": "yemediler"}, "question": {"ben": "yedim mi?", "sen": "yedin mi?", "o": "yedi mi?", "biz": "yedik mi?", "siz": "yediniz mi?", "onlar": "yediler mi?"}}, "future": {"affirmative": {"ben": "yiyeceğim", "sen": "yiyeceksin", "o": "yiyecek", "biz": "yiyeceğiz", "siz": "yiyeceksiniz", "onlar": "yiyecekler"}, "negative": {"ben": "yemeyeceğim", "sen": "yemeyeceksin", "o": "yemeyecek", "biz": "yemeyeceğiz", "siz": "yemeyeceksiniz", "onlar": "yemeyecekler"}, "question": {"ben": "yiyecek miyim?", "sen": "yiyecek misin?", "o": "yiyecek mi?", "biz": "yiyecek miyiz?", "siz": "yiyecek misiniz?", "onlar": "yiyecekler mi?"}}}}, {"inf": "içmek", "nl": "drinken", "stem": "iç", "forms": {"present": {"affirmative": {"ben": "içiyorum", "sen": "içiyorsun", "o": "içiyor", "biz": "içiyoruz", "siz": "içiyorsunuz", "onlar": "içiyorlar"}, "negative": {"ben": "içmiyorum", "sen": "içmiyorsun", "o": "içmiyor", "biz": "içmiyoruz", "siz": "içmiyorsunuz", "onlar": "içmiyorlar"}, "question": {"ben": "içiyor muyum?", "sen": "içiyor musun?", "o": "içiyor mu?", "biz": "içiyor muyuz?", "siz": "içiyor musunuz?", "onlar": "içiyorlar mı?"}}, "past": {"affirmative": {"ben": "içtim", "sen": "içtin", "o": "içti", "biz": "içtik", "siz": "içtiniz", "onlar": "içtiler"}, "negative": {"ben": "içmedim", "sen": "içmedin", "o": "içmedi", "biz": "içmedik", "siz": "içmediniz", "onlar": "içmediler"}, "question": {"ben": "içtim mi?", "sen": "içtin mi?", "o": "içti mi?", "biz": "içtik mi?", "siz": "içtiniz mi?", "onlar": "içtiler mi?"}}, "future": {"affirmative": {"ben": "içeceğim", "sen": "içeceksin", "o": "içecek", "biz": "içeceğiz", "siz": "içeceksiniz", "onlar": "içecekler"}, "negative": {"ben": "içmeyeceğim", "sen": "içmeyeceksin", "o": "içmeyecek", "biz": "içmeyeceğiz", "siz": "içmeyeceksiniz", "onlar": "içmeyecekler"}, "question": {"ben": "içecek miyim?", "sen": "içecek misin?", "o": "içecek mi?", "biz": "içecek miyiz?", "siz": "içecek misiniz?", "onlar": "içecekler mi?"}}}}, {"inf": "okumak", "nl": "lezen", "stem": "oku", "forms": {"present": {"affirmative": {"ben": "okuyorum", "sen": "okuyorsun", "o": "okuyor", "biz": "okuyoruz", "siz": "okuyorsunuz", "onlar": "okuyorlar"}, "negative": {"ben": "okumuyorum", "sen": "okumuyorsun", "o": "okumuyor", "biz": "okumuyoruz", "siz": "okumuyorsunuz", "onlar": "okumuyorlar"}, "question": {"ben": "okuyor muyum?", "sen": "okuyor musun?", "o": "okuyor mu?", "biz": "okuyor muyuz?", "siz": "okuyor musunuz?", "onlar": "okuyorlar mı?"}}, "past": {"affirmative": {"ben": "okudum", "sen": "okudun", "o": "okudu", "biz": "okuduk", "siz": "okudunuz", "onlar": "okudular"}, "negative": {"ben": "okumadım", "sen": "okumadın", "o": "okumadı", "biz": "okumadık", "siz": "okumadınız", "onlar": "okumadılar"}, "question": {"ben": "okudum mu?", "sen": "okudun mu?", "o": "okudu mu?", "biz": "okuduk mu?", "siz": "okudunuz mu?", "onlar": "okudular mı?"}}, "future": {"affirmative": {"ben": "okuyacağım", "sen": "okuyacaksın", "o": "okuyacak", "biz": "okuyacağız", "siz": "okuyacaksınız", "onlar": "okuyacaklar"}, "negative": {"ben": "okumayacağım", "sen": "okumayacaksın", "o": "okumayacak", "biz": "okumayacağız", "siz": "okumayacaksınız", "onlar": "okumayacaklar"}, "question": {"ben": "okuyacak mıyım?", "sen": "okuyacak mısın?", "o": "okuyacak mı?", "biz": "okuyacak mıyız?", "siz": "okuyacak mısınız?", "onlar": "okuyacaklar mı?"}}}}, {"inf": "yazmak", "nl": "schrijven", "stem": "yaz", "forms": {"present": {"affirmative": {"ben": "yazıyorum", "sen": "yazıyorsun", "o": "yazıyor", "biz": "yazıyoruz", "siz": "yazıyorsunuz", "onlar": "yazıyorlar"}, "negative": {"ben": "yazmıyorum", "sen": "yazmıyorsun", "o": "yazmıyor", "biz": "yazmıyoruz", "siz": "yazmıyorsunuz", "onlar": "yazmıyorlar"}, "question": {"ben": "yazıyor muyum?", "sen": "yazıyor musun?", "o": "yazıyor mu?", "biz": "yazıyor muyuz?", "siz": "yazıyor musunuz?", "onlar": "yazıyorlar mı?"}}, "past": {"affirmative": {"ben": "yazdım", "sen": "yazdın", "o": "yazdı", "biz": "yazdık", "siz": "yazdınız", "onlar": "yazdılar"}, "negative": {"ben": "yazmadım", "sen": "yazmadın", "o": "yazmadı", "biz": "yazmadık", "siz": "yazmadınız", "onlar": "yazmadılar"}, "question": {"ben": "yazdım mı?", "sen": "yazdın mı?", "o": "yazdı mı?", "biz": "yazdık mı?", "siz": "yazdınız mı?", "onlar": "yazdılar mı?"}}, "future": {"affirmative": {"ben": "yazacağım", "sen": "yazacaksın", "o": "yazacak", "biz": "yazacağız", "siz": "yazacaksınız", "onlar": "yazacaklar"}, "negative": {"ben": "yazmayacağım", "sen": "yazmayacaksın", "o": "yazmayacak", "biz": "yazmayacağız", "siz": "yazmayacaksınız", "onlar": "yazmayacaklar"}, "question": {"ben": "yazacak mıyım?", "sen": "yazacak mısın?", "o": "yazacak mı?", "biz": "yazacak mıyız?", "siz": "yazacak mısınız?", "onlar": "yazacaklar mı?"}}}}, {"inf": "çalışmak", "nl": "werken", "stem": "çalış", "forms": {"present": {"affirmative": {"ben": "çalışıyorum", "sen": "çalışıyorsun", "o": "çalışıyor", "biz": "çalışıyoruz", "siz": "çalışıyorsunuz", "onlar": "çalışıyorlar"}, "negative": {"ben": "çalışmıyorum", "sen": "çalışmıyorsun", "o": "çalışmıyor", "biz": "çalışmıyoruz", "siz": "çalışmıyorsunuz", "onlar": "çalışmıyorlar"}, "question": {"ben": "çalışıyor muyum?", "sen": "çalışıyor musun?", "o": "çalışıyor mu?", "biz": "çalışıyor muyuz?", "siz": "çalışıyor musunuz?", "onlar": "çalışıyorlar mı?"}}, "past": {"affirmative": {"ben": "çalıştım", "sen": "çalıştın", "o": "çalıştı", "biz": "çalıştık", "siz": "çalıştınız", "onlar": "çalıştılar"}, "negative": {"ben": "çalışmadım", "sen": "çalışmadın", "o": "çalışmadı", "biz": "çalışmadık", "siz": "çalışmadınız", "onlar": "çalışmadılar"}, "question": {"ben": "çalıştım mı?", "sen": "çalıştın mı?", "o": "çalıştı mı?", "biz": "çalıştık mı?", "siz": "çalıştınız mı?", "onlar": "çalıştılar mı?"}}, "future": {"affirmative": {"ben": "çalışacağım", "sen": "çalışacaksın", "o": "çalışacak", "biz": "çalışacağız", "siz": "çalışacaksınız", "onlar": "çalışacaklar"}, "negative": {"ben": "çalışmayacağım", "sen": "çalışmayacaksın", "o": "çalışmayacak", "biz": "çalışmayacağız", "siz": "çalışmayacaksınız", "onlar": "çalışmayacaklar"}, "question": {"ben": "çalışacak mıyım?", "sen": "çalışacak mısın?", "o": "çalışacak mı?", "biz": "çalışacak mıyız?", "siz": "çalışacak mısınız?", "onlar": "çalışacaklar mı?"}}}}, {"inf": "sevmek", "nl": "houden van", "stem": "sev", "forms": {"present": {"affirmative": {"ben": "seviyorum", "sen": "seviyorsun", "o": "seviyor", "biz": "seviyoruz", "siz": "seviyorsunuz", "onlar": "seviyorlar"}, "negative": {"ben": "sevmiyorum", "sen": "sevmiyorsun", "o": "sevmiyor", "biz": "sevmiyoruz", "siz": "sevmiyorsunuz", "onlar": "sevmiyorlar"}, "question": {"ben": "seviyor muyum?", "sen": "seviyor musun?", "o": "seviyor mu?", "biz": "seviyor muyuz?", "siz": "seviyor musunuz?", "onlar": "seviyorlar mı?"}}, "past": {"affirmative": {"ben": "sevdim", "sen": "sevdin", "o": "sevdi", "biz": "sevdik", "siz": "sevdiniz", "onlar": "sevdiler"}, "negative": {"ben": "sevmedim", "sen": "sevmedin", "o": "sevmedi", "biz": "sevmedik", "siz": "sevmediniz", "onlar": "sevmediler"}, "question": {"ben": "sevdim mi?", "sen": "sevdin mi?", "o": "sevdi mi?", "biz": "sevdik mi?", "siz": "sevdiniz mi?", "onlar": "sevdiler mi?"}}, "future": {"affirmative": {"ben": "seveceğim", "sen": "seveceksin", "o": "sevecek", "biz": "seveceğiz", "siz": "seveceksiniz", "onlar": "sevecekler"}, "negative": {"ben": "sevmeyeceğim", "sen": "sevmeyeceksin", "o": "sevmeyecek", "biz": "sevmeyeceğiz", "siz": "sevmeyeceksiniz", "onlar": "sevmeyecekler"}, "question": {"ben": "sevecek miyim?", "sen": "sevecek misin?", "o": "sevecek mi?", "biz": "sevecek miyiz?", "siz": "sevecek misiniz?", "onlar": "sevecekler mi?"}}}}, {"inf": "yaşamak", "nl": "leven/wonen", "stem": "yaşa", "forms": {"present": {"affirmative": {"ben": "yaşıyorum", "sen": "yaşıyorsun", "o": "yaşıyor", "biz": "yaşıyoruz", "siz": "yaşıyorsunuz", "onlar": "yaşıyorlar"}, "negative": {"ben": "yaşamıyorum", "sen": "yaşamıyorsun", "o": "yaşamıyor", "biz": "yaşamıyoruz", "siz": "yaşamıyorsunuz", "onlar": "yaşamıyorlar"}, "question": {"ben": "yaşıyor muyum?", "sen": "yaşıyor musun?", "o": "yaşıyor mu?", "biz": "yaşıyor muyuz?", "siz": "yaşıyor musunuz?", "onlar": "yaşıyorlar mı?"}}, "past": {"affirmative": {"ben": "yaşadım", "sen": "yaşadın", "o": "yaşadı", "biz": "yaşadık", "siz": "yaşadınız", "onlar": "yaşadılar"}, "negative": {"ben": "yaşamadım", "sen": "yaşamadın", "o": "yaşamadı", "biz": "yaşamadık", "siz": "yaşamadınız", "onlar": "yaşamadılar"}, "question": {"ben": "yaşadım mı?", "sen": "yaşadın mı?", "o": "yaşadı mı?", "biz": "yaşadık mı?", "siz": "yaşadınız mı?", "onlar": "yaşadılar mı?"}}, "future": {"affirmative": {"ben": "yaşayacağım", "sen": "yaşayacaksın", "o": "yaşayacak", "biz": "yaşayacağız", "siz": "yaşayacaksınız", "onlar": "yaşayacaklar"}, "negative": {"ben": "yaşamayacağım", "sen": "yaşamayacaksın", "o": "yaşamayacak", "biz": "yaşamayacağız", "siz": "yaşamayacaksınız", "onlar": "yaşamayacaklar"}, "question": {"ben": "yaşayacak mıyım?", "sen": "yaşayacak mısın?", "o": "yaşayacak mı?", "biz": "yaşayacak mıyız?", "siz": "yaşayacak mısınız?", "onlar": "yaşayacaklar mı?"}}}}];
+const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation": ["Het Turks heeft acht klinkers: a, ı, o, u (achterklinkers) en e, i, ö, ü (voorklinkers). Bijna elke uitgang die je aan een woord plakt, past zich aan de laatste klinker van dat woord aan — dat heet klinkerharmonie.", "Er zijn twee soorten harmonie. Tweeklankharmonie (a/e) kijkt alleen naar voor/achter: na een achterklinker komt 'a', na een voorklinker komt 'e'. Vierklankharmonie (ı/i/u/ü) kijkt ook naar rond/onrond: na a of ı komt ı, na e of i komt i, na o of u komt u, na ö of ü komt ü.", "Dit is het fundament van bijna elke Turkse uitgang: meervoud, naamvallen, bezittelijke vormen, werkwoordstijden — ze volgen allemaal een van deze twee patronen."], "examples": [{"tr": "ev-ler", "nl": "huizen (achter → -ler? nee: e is voor, dus -ler)"}, {"tr": "oda-lar", "nl": "kamers (a is achter, dus -lar)"}, {"tr": "göz-ler", "nl": "ogen (ö is voor, dus -ler)"}, {"tr": "kitap-lar", "nl": "boeken (a is achter, dus -lar)"}, {"tr": "gül-üyor", "nl": "hij/zij lacht (ü is voor+rond, dus -üyor)"}], "exceptions": "Sommige uitgangen zijn onveranderlijk (volgen geen harmonie), zoals -yor (tegenwoordige tijd, altijd met 'o'), -ken ('terwijl') en -ki (bezittelijk, 'die van'). Ook leenwoorden zoals 'saat' (uur) of 'kalem' (pen) volgen de harmonie soms niet perfect omdat ze uit het Arabisch/Perzisch komen.", "quiz": [{"q": "Welke uitgang hoort bij 'araba' (auto) voor meervoud?", "choices": ["-lar", "-ler", "-lır", "-lir"], "answer": "-lar"}, {"q": "Welke uitgang hoort bij 'köy' (dorp) voor meervoud?", "choices": ["-lar", "-ler", "-lu", "-lı"], "answer": "-ler"}, {"q": "'a' en 'ı' behoren tot welke groep?", "choices": ["Achterklinkers", "Voorklinkers", "Ronde klinkers", "Geen van beide"], "answer": "Achterklinkers"}, {"q": "Welke klinker hoort NIET bij de groep 'voorklinkers'?", "choices": ["e", "i", "ö", "o"], "answer": "o"}, {"q": "Bij vierklankharmonie, welke klinker volgt op 'u'?", "choices": ["u", "ü", "ı", "i"], "answer": "u"}, {"q": "Welke uitgang is een uitzondering en volgt GEEN klinkerharmonie?", "choices": ["-yor", "-lar/-ler", "-de/-da", "-i/-ı"], "answer": "-yor"}, {"q": "'su' (water) + meervoud wordt:", "choices": ["sular", "suler", "sulır", "sulir"], "answer": "sular"}, {"q": "Wat bepaalt welke uitgang je gebruikt in het Turks?", "choices": ["De laatste klinker van het woord", "De eerste letter van het woord", "De lengte van het woord", "Het geslacht van het woord"], "answer": "De laatste klinker van het woord"}]}, {"id": "l2", "title": "Naamvallen (locatief, datief, accusatief, ablatief)", "explanation": ["Het Turks heeft geen voorzetsels zoals 'in', 'naar' of 'van' — die betekenis zit in een uitgang aan het zelfstandig naamwoord.", "Locatief (-de/-da): 'in/op/bij'. Datief (-e/-a): 'naar/aan'. Accusatief (-i/-ı/-u/-ü): het lijdend voorwerp, maar alleen als het bepaald is ('het boek', niet zomaar 'een boek'). Ablatief (-den/-dan): 'van/uit/vandaan'.", "Als het woord op een klinker eindigt, wordt een buffer-'y' ingevoegd bij datief en accusatief om twee klinkers na elkaar te voorkomen: araba → araba-ya (niet araba-a)."], "examples": [{"tr": "ev-de", "nl": "in het huis (locatief)"}, {"tr": "okul-a", "nl": "naar school (datief)"}, {"tr": "kitab-ı okuyorum", "nl": "ik lees het boek (accusatief, let op p→b)"}, {"tr": "İstanbul'dan geliyorum", "nl": "ik kom uit Istanbul (ablatief)"}, {"tr": "araba-ya biniyorum", "nl": "ik stap in de auto (datief met buffer-y)"}], "exceptions": "Woorden die eindigen op p, ç, t, k verzachten die medeklinker vaak vóór een klinkeruitgang: kitap → kitabı, ağaç → ağacı. Dit heet medeklinkerverzachting en gebeurt bij zelfstandige naamwoorden veel consequenter dan bij werkwoorden.", "quiz": [{"q": "'Naar het huis' (datief) is:", "choices": ["ev-e", "ev-den", "ev-de", "ev-i"], "answer": "ev-e"}, {"q": "'In de tas' (locatief) is 'çanta' →", "choices": ["çanta-da", "çanta-ya", "çanta-dan", "çanta-yı"], "answer": "çanta-da"}, {"q": "'Uit Ankara' (ablatief) is:", "choices": ["Ankara-dan", "Ankara-da", "Ankara-ya", "Ankara-yı"], "answer": "Ankara-dan"}, {"q": "Welke naamval gebruik je voor een bepaald lijdend voorwerp?", "choices": ["Accusatief", "Locatief", "Datief", "Ablatief"], "answer": "Accusatief"}, {"q": "'kitap' (boek) + accusatief wordt (met verzachting):", "choices": ["kitabı", "kitapı", "kitaba", "kitaptan"], "answer": "kitabı"}, {"q": "Waarom krijgt 'araba' een buffer-y bij de datief?", "choices": ["Om twee klinkers naast elkaar te vermijden", "Om het woord langer te maken", "Puur toeval, geen regel", "Alleen bij eigennamen"], "answer": "Om twee klinkers naast elkaar te vermijden"}, {"q": "'Van de tafel' (ablatief) 'masa' →", "choices": ["masa-dan", "masa-da", "masa-ya", "masa-yı"], "answer": "masa-dan"}, {"q": "Welke naamval betekent 'in/op/bij'?", "choices": ["Locatief", "Datief", "Accusatief", "Ablatief"], "answer": "Locatief"}]}, {"id": "l3", "title": "Meervoud: -ler/-lar", "explanation": ["Meervoud vorm je met -ler (na voorklinkers) of -lar (na achterklinkers) — simpele tweeklankharmonie.", "Na een getal of hoeveelheidswoord (iki, üç, birkaç, çok) blijft het zelfstandig naamwoord juist enkelvoud, want het getal maakt al duidelijk dat het om meer gaat.", "Dit is anders dan het Nederlands, waar 'drie boeken' altijd meervoud is — in het Turks zeg je letterlijk 'drie boek'."], "examples": [{"tr": "araba-lar", "nl": "auto's"}, {"tr": "öğrenci-ler", "nl": "studenten"}, {"tr": "iki kitap", "nl": "twee boeken (géén -lar!)"}, {"tr": "çocuk-lar", "nl": "kinderen"}, {"tr": "beş ev", "nl": "vijf huizen (géén -ler!)"}], "exceptions": "Bij mensen kun je -ler ook gebruiken om 'en de zijnen' te betekenen: 'Ahmetler geldi' = 'Ahmet en zijn gezelschap zijn gekomen', niet letterlijk 'Ahmets'.", "quiz": [{"q": "'ev' (huis) in het meervoud:", "choices": ["evler", "evlar", "evler", "evlik"], "answer": "evler"}, {"q": "'yol' (weg) in het meervoud:", "choices": ["yollar", "yoller", "yollır", "yol"], "answer": "yollar"}, {"q": "'üç araba' betekent:", "choices": ["drie auto's", "drie auto", "één auto", "de derde auto"], "answer": "drie auto's"}, {"q": "Waarom staat er geen -lar achter 'üç araba'?", "choices": ["Het getal maakt het meervoud al duidelijk", "Auto's kunnen geen meervoud hebben", "Dat is een spelfout in het Turks", "Alleen bij mensen gebruik je -lar niet"], "answer": "Het getal maakt het meervoud al duidelijk"}, {"q": "'göz' (oog) in het meervoud:", "choices": ["gözler", "gözlar", "gözlük", "gözü"], "answer": "gözler"}, {"q": "'beş çocuk' betekent:", "choices": ["vijf kinderen", "het vijfde kind", "vijf kind", "kinderen van vijf"], "answer": "vijf kinderen"}, {"q": "'kitap' (boek) in het meervoud:", "choices": ["kitaplar", "kitapler", "kitablar", "kitaplık"], "answer": "kitaplar"}, {"q": "'Ahmetler geldi' betekent letterlijk zoiets als:", "choices": ["Ahmet en zijn gezelschap zijn gekomen", "Meerdere mensen heten Ahmet", "Ahmet is meerdere keren gekomen", "Dit is grammaticaal fout"], "answer": "Ahmet en zijn gezelschap zijn gekomen"}]}, {"id": "l4", "title": "Bezittelijke uitgangen", "explanation": ["In plaats van een los bezittelijk voornaamwoord ('mijn huis') plak je in het Turks een uitgang aan het zelfstandig naamwoord vast: ev-im (mijn huis).", "De reeks is: -im/-ım/-um/-üm (mijn), -in/-ın/-un/-ün (jouw), -i/-ı/-u/-ü (zijn/haar), -imiz/-ımız/-umuz/-ümüz (ons), -iniz/-ınız/-unuz/-ünüz (jullie), -leri/-ları (hun) — allemaal vierklankharmonie.", "Bij woorden die op een klinker eindigen, komt er een buffer-'n' of 'y' bij sommige vormen tussen: araba-m (mijn auto) maar araba-sı (zijn/haar auto, met buffer-s voor 3e persoon)."], "examples": [{"tr": "ev-im", "nl": "mijn huis"}, {"tr": "araba-n", "nl": "jouw auto"}, {"tr": "kitab-ı", "nl": "zijn/haar boek"}, {"tr": "ev-imiz", "nl": "ons huis"}, {"tr": "öğretmen-leri", "nl": "hun leraar"}], "exceptions": "Voor de 3e persoon enkelvoud krijgen medeklinker-eindigende woorden -i/-ı/-u/-ü, maar klinker-eindigende woorden krijgen -si/-sı/-su/-sü (met buffer-s): araba-sı (zijn/haar auto), niet araba-ı.", "quiz": [{"q": "'mijn boek' is:", "choices": ["kitab-ım", "kitap-ım", "kitab-ın", "kitab-ı"], "answer": "kitab-ım"}, {"q": "'jouw huis' is:", "choices": ["ev-in", "ev-im", "ev-i", "ev-imiz"], "answer": "ev-in"}, {"q": "'zijn/haar auto' (araba, klinker-eind) is:", "choices": ["araba-sı", "araba-ı", "araba-si", "araba-n"], "answer": "araba-sı"}, {"q": "'ons huis' is:", "choices": ["ev-imiz", "ev-iniz", "ev-leri", "ev-im"], "answer": "ev-imiz"}, {"q": "'hun leraar' (öğretmen) is:", "choices": ["öğretmen-leri", "öğretmen-imiz", "öğretmen-in", "öğretmen-i"], "answer": "öğretmen-leri"}, {"q": "Waarom krijgt 'araba' bij 3e persoon een extra 's'?", "choices": ["Als buffer omdat het woord op een klinker eindigt", "Puur toeval", "Om het meervoud aan te geven", "Dat gebeurt niet, het is een fout"], "answer": "Als buffer omdat het woord op een klinker eindigt"}, {"q": "'jullie huis' is:", "choices": ["ev-iniz", "ev-imiz", "ev-in", "ev-i"], "answer": "ev-iniz"}, {"q": "'zijn boek' (kitap, medeklinker-eind + verzachting) is:", "choices": ["kitab-ı", "kitap-ı", "kitab-sı", "kitap-sı"], "answer": "kitab-ı"}]}, {"id": "l5", "title": "Ekfiil — het werkwoord 'zijn'", "explanation": ["Het Turks heeft geen los werkwoord voor 'zijn' in de tegenwoordige tijd zoals 'ben/is/zijn' in het Nederlands. In plaats daarvan plak je een uitgang direct aan het bijvoeglijk naamwoord of zelfstandig naamwoord: yorgun-um (ik ben moe).", "De uitgangen zijn: -im/-ım/-um/-üm (ik ben), -sin/-sın/-sun/-sün (jij bent), (geen uitgang, hij/zij/het is), -iz/-ız/-uz/-üz (wij zijn), -siniz/-sınız/-sunuz/-sünüz (jullie zijn), -ler/-lar (zij zijn, optioneel).", "Dit heet de 'ekfiil' (uitgangswerkwoord). Je gebruikt het ook om te zeggen wat iemands beroep of nationaliteit is: öğretmen-im (ik ben leraar)."], "examples": [{"tr": "yorgun-um", "nl": "ik ben moe"}, {"tr": "mutlu-sun", "nl": "jij bent blij"}, {"tr": "öğretmen", "nl": "hij/zij is leraar (geen uitgang!)"}, {"tr": "hazır-ız", "nl": "wij zijn klaar"}, {"tr": "Hollandalı-yım", "nl": "ik ben Nederlander"}], "exceptions": "Na een klinker komt er een buffer-'y' tussen het woord en de uitgang: Hollandalı + ım wordt Hollandalı-yım, niet Hollandalıım. Voor de 3e persoon enkelvoud is er helemaal geen uitgang nodig.", "quiz": [{"q": "'ik ben moe' (yorgun) is:", "choices": ["yorgun-um", "yorgun-sun", "yorgun", "yorgun-uz"], "answer": "yorgun-um"}, {"q": "'jij bent blij' (mutlu) is:", "choices": ["mutlu-sun", "mutlu-yum", "mutlu", "mutlu-yuz"], "answer": "mutlu-sun"}, {"q": "'hij is leraar' (öğretmen) is:", "choices": ["öğretmen", "öğretmen-dir", "öğretmen-im", "öğretmen-sin"], "answer": "öğretmen"}, {"q": "'wij zijn klaar' (hazır) is:", "choices": ["hazır-ız", "hazır-ım", "hazır-sınız", "hazır-lar"], "answer": "hazır-ız"}, {"q": "Waarom krijgt 'Hollandalı' een buffer-y voor '-ım'?", "choices": ["Omdat het woord al op een klinker eindigt", "Omdat het een eigennaam is", "Puur toeval", "Dat gebeurt niet"], "answer": "Omdat het woord al op een klinker eindigt"}, {"q": "Bestaat er in het Turks een los woord voor 'ben' (ik ben) zoals in het Nederlands?", "choices": ["Nee, het zit als uitgang aan het woord vast", "Ja, het woord is 'olmak'", "Ja, het woord is 'var'", "Alleen in de verleden tijd"], "answer": "Nee, het zit als uitgang aan het woord vast"}, {"q": "'jullie zijn klaar' (hazır) is:", "choices": ["hazır-sınız", "hazır-sın", "hazır-ız", "hazır-lar"], "answer": "hazır-sınız"}, {"q": "Welke persoon krijgt GEEN uitgang bij de ekfiil?", "choices": ["hij/zij/het", "ik", "jij", "wij"], "answer": "hij/zij/het"}]}, {"id": "l6", "title": "Tegenwoordige tijd: -Iyor", "explanation": ["De tegenwoordige tijd (bezig zijn met iets, 'ik loop nu') vorm je met de uitgang -Iyor: eerst een hoge klinker die met vierklankharmonie aan de stam past (ı/i/u/ü), dan altijd 'yor'.", "Eindigt de stam op een klinker (zoals iste-, anla-, oku-), dan valt die klinker weg vóór -Iyor: iste- → isti-yor, anla- → anlı-yor.", "Let op: de persoonsuitgangen ná -yor volgen NIET de klinkerharmonie van de stam — ze zijn altijd hetzelfde: -yorum, -yorsun, -yor, -yoruz, -yorsunuz, -yorlar. Dit is een bekende uitzondering in het Turks.", "Ontkenning: stam + m + harmonische klinker + yor: git-mi-yor-um (ik ga niet). Vraag: het werkwoord blijft compleet, en er komt een los woordje 'mu' achteraan (altijd 'mu', omdat -yor altijd op een achter-ronde 'o' eindigt): gidiyor musun? (ga jij?)"], "examples": [{"tr": "geliyorum", "nl": "ik kom (nu)"}, {"tr": "okuyorsun", "nl": "jij leest (nu)"}, {"tr": "gitmiyoruz", "nl": "wij gaan niet"}, {"tr": "anlıyor musun?", "nl": "begrijp jij het?"}, {"tr": "yiyorlar", "nl": "zij eten (nu, let op ye→yi)"}], "exceptions": "'yemek' (eten) en 'demek' (zeggen) zijn onregelmatig: de stam-klinker e wordt i vóór -yor (ye→yi-yor, niet ye-yor). De persoonsuitgangen zijn hierboven al genoemd als een vaste uitzondering op klinkerharmonie.", "quiz": [{"q": "\"wij\" + bulmak (vinden) — ontkennend", "choices": ["yaşamıyorsunuz", "okuyorlar", "bulmuyoruz", "anlamıyoruz"], "answer": "bulmuyoruz"}, {"q": "\"wij\" + bulmak (vinden) — vragend", "choices": ["geliyor muyum?", "içiyor muyum?", "istemiyor", "buluyor muyuz?"], "answer": "buluyor muyuz?"}, {"q": "\"ik\" + bilmek (weten) — bevestigend", "choices": ["okuyoruz", "anlıyor musun?", "yazmıyoruz", "biliyorum"], "answer": "biliyorum"}, {"q": "\"hij/zij/het\" + bakmak (kijken) — ontkennend", "choices": ["yazıyorlar mı?", "anlamıyor", "bulmuyoruz", "bakmıyor"], "answer": "bakmıyor"}, {"q": "\"jullie\" + yemek (eten) — bevestigend", "choices": ["veriyorlar", "okuyorum", "gidiyor muyum?", "yiyorsunuz"], "answer": "yiyorsunuz"}, {"q": "\"jij\" + içmek (drinken) — bevestigend", "choices": ["içiyorsun", "biliyor", "bakıyorlar mı?", "alıyorum"], "answer": "içiyorsun"}, {"q": "\"jij\" + çalışmak (werken) — ontkennend", "choices": ["almıyorum", "çalışmıyorsun", "yapmıyorum", "oluyorum"], "answer": "çalışmıyorsun"}, {"q": "\"zij\" + gitmek (gaan) — vragend", "choices": ["çalışıyorsunuz", "gidiyorlar mı?", "bakıyor musun?", "sevmiyoruz"], "answer": "gidiyorlar mı?"}, {"q": "\"jullie\" + sevmek (houden van) — bevestigend", "choices": ["yemiyorlar", "veriyor musunuz?", "seviyorsunuz", "biliyoruz"], "answer": "seviyorsunuz"}, {"q": "\"jij\" + istemek (willen) — bevestigend", "choices": ["anlamıyorlar", "görüyorsunuz", "sevmiyorum", "istiyorsun"], "answer": "istiyorsun"}]}, {"id": "l7", "title": "Verleden tijd: -DI", "explanation": ["De (afgeronde) verleden tijd vorm je met -DI: een d of t, gevolgd door een hoge klinker met vierklankharmonie (ı/i/u/ü), plus een persoonsuitgang die dicht bij de stam blijft: -m, -n, (geen), -k, -nız/niz/nuz/nüz, -lar/ler.", "De 'd' wordt een 't' als de stam eindigt op een stemloze medeklinker: ç, f, h, k, p, s, ş, t (denk aan 'FeHiCePeŞeSTe' als geheugensteun). Bijvoorbeeld: yap-tı (niet yap-dı), git-ti, bak-tı.", "Bij een vraag in de verleden tijd blijft de persoonsuitgang op het werkwoord staan, en komt er een los woordje 'mi/mı/mu/mü' achter: gittin mi? (ben je gegaan?)."], "examples": [{"tr": "geldim", "nl": "ik kwam"}, {"tr": "yaptın", "nl": "jij deed"}, {"tr": "okudu", "nl": "hij/zij las"}, {"tr": "gitmedik", "nl": "wij gingen niet"}, {"tr": "gördünüz mü?", "nl": "hebben jullie gezien?"}], "exceptions": "Klinker-eindigende stammen (anla-, iste-, ye-, oku-, yaşa-) krijgen de -DI direct erachter zonder buffer, want de 'd/t' is al een medeklinker: anla-dı, ye-di.", "quiz": [{"q": "\"wij\" + anlamak (begrijpen) — bevestigend", "choices": ["anladık", "okumadık", "bildim", "sevmediniz"], "answer": "anladık"}, {"q": "\"zij\" + yapmak (doen/maken) — bevestigend", "choices": ["okumadın", "okudum mu?", "yaptılar", "çalışmadım"], "answer": "yaptılar"}, {"q": "\"wij\" + gelmek (komen) — vragend", "choices": ["konuştular mı?", "konuştunuz", "geldik mi?", "bildin mi?"], "answer": "geldik mi?"}, {"q": "\"ik\" + gitmek (gaan) — vragend", "choices": ["konuştun mu?", "konuşmadılar", "gittim mi?", "aldım mı?"], "answer": "gittim mi?"}, {"q": "\"jij\" + bilmek (weten) — bevestigend", "choices": ["gitmedi", "bildin", "buldular", "yedin mi?"], "answer": "bildin"}, {"q": "\"wij\" + almak (nemen/kopen) — bevestigend", "choices": ["sevdi", "baktık mı?", "sevdiler", "aldık"], "answer": "aldık"}, {"q": "\"hij/zij/het\" + olmak (zijn/worden) — bevestigend", "choices": ["gittiler mi?", "okudular", "oldu", "konuşmadı"], "answer": "oldu"}, {"q": "\"wij\" + çalışmak (werken) — bevestigend", "choices": ["buldunuz mu?", "çalıştık", "aldınız mı?", "aldık mı?"], "answer": "çalıştık"}, {"q": "\"jullie\" + yaşamak (leven/wonen) — bevestigend", "choices": ["yaşadınız", "sevdiniz mi?", "baktın mı?", "bildin mi?"], "answer": "yaşadınız"}, {"q": "\"jullie\" + vermek (geven) — bevestigend", "choices": ["oldum", "yazmadılar", "verdiniz", "yemedi"], "answer": "verdiniz"}]}, {"id": "l8", "title": "Toekomende tijd: -ecek/-acak", "explanation": ["De toekomende tijd vorm je met -ecek (na voorklinker-stam) of -acak (na achterklinker-stam) — tweeklankharmonie.", "Eindigt de stam op een klinker, dan komt er een buffer-'y' tussen: anla-yacak, iste-yecek.", "Belangrijke uitzondering: vóór de 1e persoon enkelvoud (-ım/-im) en meervoud (-ız/-iz) verzacht de 'k' van -ecek/-acak altijd naar 'ğ': gid-ecek + im wordt gid-eceğ-im. Dit gebeurt bij ALLE werkwoorden, het is een vaste klankregel, geen uitzondering per werkwoord."], "examples": [{"tr": "geleceğim", "nl": "ik zal komen"}, {"tr": "yapacaksın", "nl": "jij zal doen"}, {"tr": "gitmeyecek", "nl": "hij/zij zal niet gaan"}, {"tr": "okuyacağız", "nl": "wij zullen lezen"}, {"tr": "gelecek misiniz?", "nl": "zullen jullie komen?"}], "exceptions": "De k→ğ verzachting gebeurt alleen vóór een klinker (1e persoon enkelvoud/meervoud). Bij 2e persoon en 3e persoon meervoud volgt een medeklinker (-sın, -ler), dus blijft de k gewoon staan: gidecek-sin, gidecek-ler.", "quiz": [{"q": "\"jullie\" + sevmek (houden van) — ontkennend", "choices": ["bulacak mıyım?", "istemeyecek", "istemeyeceksin", "sevmeyeceksiniz"], "answer": "sevmeyeceksiniz"}, {"q": "\"hij/zij/het\" + bulmak (vinden) — ontkennend", "choices": ["içecekler", "yazmayacaksın", "yapacaksın", "bulmayacak"], "answer": "bulmayacak"}, {"q": "\"jullie\" + yazmak (schrijven) — bevestigend", "choices": ["bileceksiniz", "verecek misiniz?", "çalışmayacaksınız", "yazacaksınız"], "answer": "yazacaksınız"}, {"q": "\"ik\" + sevmek (houden van) — ontkennend", "choices": ["isteyeceksin", "alacaksın", "sevmeyeceğim", "bakmayacak"], "answer": "sevmeyeceğim"}, {"q": "\"jullie\" + yaşamak (leven/wonen) — vragend", "choices": ["yapacak mı?", "yaşayacak mısınız?", "olmayacaklar", "yapacağız"], "answer": "yaşayacak mısınız?"}, {"q": "\"wij\" + anlamak (begrijpen) — ontkennend", "choices": ["gelecek misiniz?", "yiyecek", "bulmayacağım", "anlamayacağız"], "answer": "anlamayacağız"}, {"q": "\"jullie\" + çalışmak (werken) — vragend", "choices": ["çalışacaklar mı?", "vermeyeceğiz", "konuşmayacak", "çalışacak mısınız?"], "answer": "çalışacak mısınız?"}, {"q": "\"jullie\" + içmek (drinken) — bevestigend", "choices": ["içeceksiniz", "görmeyeceğim", "yaşayacağız", "olmayacağız"], "answer": "içeceksiniz"}, {"q": "\"jullie\" + yapmak (doen/maken) — bevestigend", "choices": ["içeceksin", "sevecekler mi?", "yapacaksınız", "bilecek"], "answer": "yapacaksınız"}, {"q": "\"zij\" + vermek (geven) — vragend", "choices": ["verecekler mi?", "geleceksiniz", "olmayacaksın", "yiyecek miyiz?"], "answer": "verecekler mi?"}]}, {"id": "l9", "title": "Ontkenning: değil en -me/-ma", "explanation": ["Voor werkwoorden gebruik je de uitgang -me/-ma (tweeklankharmonie) vóór de tijdsuitgang: git-me-di (ik ging niet), gel-mi-yor (hij komt niet — let op: bij -Iyor wordt -me/-ma altijd -mi/-mı/-mu/-mü, dezelfde vierklankharmonie als -Iyor zelf).", "Voor zelfstandige naamwoorden, bijvoeglijke naamwoorden en de ekfiil ('zijn') gebruik je juist een apart woord: değil. Öğretmen değilim (ik ben geen leraar) — değil krijgt zelf de persoonsuitgang.", "'Yok' gebruik je specifiek om afwezigheid/geen-bezit aan te geven (tegenover 'var' = er is): Param yok (ik heb geen geld, letterlijk 'mijn geld is er niet')."], "examples": [{"tr": "gitmiyorum", "nl": "ik ga niet"}, {"tr": "yorgun değilim", "nl": "ik ben niet moe"}, {"tr": "öğretmen değil", "nl": "hij/zij is geen leraar"}, {"tr": "param yok", "nl": "ik heb geen geld"}, {"tr": "gelmedi", "nl": "hij/zij is niet gekomen"}], "exceptions": "'Değil' lijkt op een los werkwoord maar buigt eigenlijk als de ekfiil: değil-im, değil-sin, değil, değil-iz, değil-siniz, değil-ler.", "quiz": [{"q": "'ik ben niet blij' (mutlu) is:", "choices": ["mutlu değilim", "mutlu-muyum", "mutsuzum", "mutlu-mıyorum"], "answer": "mutlu değilim"}, {"q": "Bij werkwoorden gebruik je voor ontkenning:", "choices": ["-me/-ma", "değil", "yok", "-siz"], "answer": "-me/-ma"}, {"q": "'ik heb geen geld' gebruikt:", "choices": ["yok", "değil", "-me/-ma", "hiç"], "answer": "yok"}, {"q": "'hij is geen leraar' is:", "choices": ["öğretmen değil", "öğretmen-sizim", "öğretmen yok", "öğretmen-mez"], "answer": "öğretmen değil"}, {"q": "'değil' gedraagt zich grammaticaal als:", "choices": ["de ekfiil (zijn)", "een zelfstandig naamwoord", "een bijwoord", "een voorzetsel"], "answer": "de ekfiil (zijn)"}, {"q": "'ik ga niet' bij -Iyor tijd is:", "choices": ["gitmiyorum", "gitmeyorum", "gitmayorum", "gitmezim"], "answer": "gitmiyorum"}, {"q": "Waarom wordt -me/-ma bij -Iyor tot -mi/-mı/-mu/-mü?", "choices": ["Omdat -Iyor zelf ook vierklankharmonie gebruikt voor die klinker", "Puur toeval", "Dat gebeurt niet", "Alleen bij onregelmatige werkwoorden"], "answer": "Omdat -Iyor zelf ook vierklankharmonie gebruikt voor die klinker"}, {"q": "'var' betekent het tegenovergestelde van:", "choices": ["yok", "değil", "-me/-ma", "-sız"], "answer": "yok"}]}, {"id": "l10", "title": "Vraagpartikel: mi/mı/mu/mü", "explanation": ["Een ja/nee-vraag maak je in het Turks niet met woordvolgorde (zoals 'ga jij?'), maar met een los woordje mi/mı/mu/mü dat vierklankharmonie volgt op de klank die eraan voorafgaat.", "Bij de tegenwoordige tijd (-Iyor) is dat woordje altijd 'mu', omdat -yor zelf altijd eindigt op een achter-ronde 'o'. Bij de toekomende tijd (-ecek/-acak) is het altijd 'mi' of 'mı' (nooit mu/mü), want de tijdsuitgang eindigt op a of e.", "Bij de meeste tijden komt de persoonsuitgang ná het vraagpartikel: gidiyor mu-yum? (ga ik?). Bij de verleden tijd (-DI) blijft de persoonsuitgang juist op het werkwoord zelf staan: gittin mi? (ben je gegaan?)."], "examples": [{"tr": "geliyor musun?", "nl": "kom jij?"}, {"tr": "gelecek misin?", "nl": "zal jij komen?"}, {"tr": "geldin mi?", "nl": "ben je gekomen?"}, {"tr": "mutlu musun?", "nl": "ben jij blij?"}, {"tr": "kitap mı bu?", "nl": "is dit een boek?"}], "exceptions": "Bij zelfstandige naamwoorden/bijvoeglijke naamwoorden (met de ekfiil) volgt het vraagpartikel gewoon vierklankharmonie op het laatste woord zelf: öğretmen misin? (ben je leraar?), mutlu musun? (ben je blij?).", "quiz": [{"q": "Bij de tegenwoordige tijd (-Iyor) is het vraagpartikel altijd:", "choices": ["mu", "mi", "mı", "mü"], "answer": "mu"}, {"q": "'ben je gegaan?' (verleden tijd) is:", "choices": ["gittin mi?", "gidiyor musun?", "gidecek misin?", "gitti mı?"], "answer": "gittin mi?"}, {"q": "Bij de toekomende tijd is het vraagpartikel nooit:", "choices": ["mu/mü", "mi", "mı", "geen van beide, alle vier kunnen"], "answer": "mu/mü"}, {"q": "'kom jij?' (tegenwoordige tijd) is:", "choices": ["geliyor musun?", "geldin mi?", "gelecek misin?", "gel mi?"], "answer": "geliyor musun?"}, {"q": "Bij de verleden tijd (-DI), waar blijft de persoonsuitgang staan?", "choices": ["Op het werkwoord zelf, vóór 'mi'", "Achter 'mi' geplakt", "Nergens, die vervalt", "Op het vraagpartikel"], "answer": "Op het werkwoord zelf, vóór 'mi'"}, {"q": "'ben je blij?' (mutlu, ekfiil) is:", "choices": ["mutlu musun?", "mutlu mısın?", "mutlu misin?", "mutlu müsün?"], "answer": "mutlu musun?"}, {"q": "Waarom is het vraagpartikel bij -Iyor altijd 'mu' en niet 'mi'?", "choices": ["Omdat -yor zelf altijd op een achter-ronde 'o' eindigt", "Omdat 'mu' makkelijker uit te spreken is", "Puur toeval, geen regel", "Dat klopt niet, het varieert wel"], "answer": "Omdat -yor zelf altijd op een achter-ronde 'o' eindigt"}, {"q": "'zal jij komen?' is:", "choices": ["gelecek misin?", "geliyor musun?", "geldin mi?", "gelir misin? "], "answer": "gelecek misin?"}]}, {"id": "l11", "title": "Gebiedende wijs (emir kipi) — jij-vorm", "explanation": ["Voor een bevel of instructie aan 'jij' gebruik je in het Turks gewoon de kale werkwoordstam, zonder enige uitgang: gel! (kom!), otur! (ga zitten!), bak! (kijk!). Dit is dezelfde stam die je ook ziet als basis van bijvoorbeeld de tegenwoordige tijd (-Iyor) of de ontkenning (-mA).", "De ontkennende vorm krijgt de uitgang -mA direct aan de stam, met tweeklankharmonie: -ma na een achterklinker-stam (a/ı/o/u), -me na een voorklinker-stam (e/i/ö/ü). Bijvoorbeeld: gel-me! (kom niet!), bak-ma! (kijk niet!), gör-me! (zie/kijk niet!).", "Een kaal bevel klinkt in het Turks al gauw wat bot. Om het te verzachten tot een beleefd verzoek, zet je 'lütfen' (alsjeblieft) ervoor of erachter: 'Lütfen otur.' (Ga alsjeblieft zitten.), 'Lütfen koşma.' (Ren alsjeblieft niet.)."], "examples": [{"tr": "Gel!", "nl": "Kom!"}, {"tr": "Gelme!", "nl": "Kom niet!"}, {"tr": "Otur lütfen.", "nl": "Ga zitten, alsjeblieft."}, {"tr": "Bakma!", "nl": "Kijk niet!"}, {"tr": "Yaz.", "nl": "Schrijf."}], "exceptions": "Deze vorm is specifiek de 2e persoon enkelvoud ('jij'). Voor de beleefde vorm of meervoud ('u' / 'jullie') gebruik je een andere uitgang (-in/-ın/-un/-ün of -yin/-yın), die in een latere les aan bod komt. Let ook op: 'lütfen' verandert niets aan de werkwoordsvorm zelf, het is puur een beleefdheidswoord dat je ervoor of erachter plaatst.", "quiz": [{"q": "Wat is de bevestigende jij-vorm van 'okumak' (lezen)?", "choices": ["oku", "okuma", "okuyor", "okudu"], "answer": "oku"}, {"q": "Wat is de ontkennende vorm van 'gel' (kom)?", "choices": ["gelme", "gelmi", "gelmiyor", "gelmedi"], "answer": "gelme"}, {"q": "Welke uitgang gebruik je voor de ontkennende gebiedende wijs?", "choices": ["-mA", "-mI", "-yor", "-DI"], "answer": "-mA"}, {"q": "'Kijk niet!' (bakmak) is:", "choices": ["Bakma!", "Bakmıyor!", "Baksın!", "Bakıyor!"], "answer": "Bakma!"}, {"q": "Hoe verzacht je een bevel tot een beleefd verzoek?", "choices": ["Door 'lütfen' toe te voegen", "Door de stam te verdubbelen", "Door een vraagteken te gebruiken", "Dat kan niet in het Turks"], "answer": "Door 'lütfen' toe te voegen"}, {"q": "Welke vorm gebruik je voor de bevestigende jij-vorm van de gebiedende wijs?", "choices": ["De kale werkwoordstam, zonder uitgang", "Stam + -yor", "Stam + -DI", "Stam + -ecek"], "answer": "De kale werkwoordstam, zonder uitgang"}, {"q": "'Yazma!' betekent:", "choices": ["Schrijf niet!", "Schrijf!", "Ik schrijf niet", "Jij schrijft"], "answer": "Schrijf niet!"}, {"q": "De ontkennende jij-vorm van 'çalışmak' (werken) is:", "choices": ["çalışma", "çalışme", "çalışıyor", "çalıştı"], "answer": "çalışma"}]}];
+(function(){
+  "use strict";
+
+  // ---------- Constants ----------
+  const STORAGE_KEY = "turks-progress-v2";
+  const PRONOUN_NL = {"ben":"ik","sen":"jij","o":"hij/zij/het","biz":"wij","siz":"jullie","onlar":"zij"};
+  const POLARITY_NL = {"affirmative":"bevestigend","negative":"ontkennend","question":"vragend"};
+  const TENSE_NL = {"present":"tegenwoordige tijd","past":"verleden tijd","future":"toekomende tijd"};
+  const TENSE_LESSON = {"present":"l6","past":"l7","future":"l8"};
+
+  // ---------- State ----------
+  let progress = null;
+  let current = null;
+  let currentMode = "mc";
+  let currentFilter = "all";
+  let quizState = null;
+  let currentLessonIndex = null;
+
+  const todayStr = () => new Date().toISOString().slice(0,10);
+
+  function defaultProgress(){
+    return {
+      wordStats: {},
+      streak: 0,
+      bestStreak: 0,
+      lastStreakDate: null,
+      todayDate: todayStr(),
+      todayCount: 0,
+      dailyGoal: 10,
+      totalPracticed: 0,
+      customWords: [],
+      grammar: { completed: [], scores: {} }
+    };
+  }
+
+  async function loadProgress(){
+    try{
+      const res = await window.storage.get(STORAGE_KEY);
+      progress = res && res.value ? JSON.parse(res.value) : defaultProgress();
+    }catch(e){
+      progress = defaultProgress();
+    }
+    if(!progress.customWords) progress.customWords = [];
+    if(!progress.grammar) progress.grammar = { completed: [], scores: {} };
+    const t = todayStr();
+    if(progress.todayDate !== t){
+      const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0,10);
+      if(progress.lastStreakDate !== yesterday && progress.lastStreakDate !== t){
+        progress.streak = 0;
+      }
+      progress.todayDate = t;
+      progress.todayCount = 0;
+    }
+  }
+
+  async function saveProgress(){
+    try{ await window.storage.set(STORAGE_KEY, JSON.stringify(progress)); }catch(e){ /* keep app usable offline */ }
+  }
+
+  function getStat(id){
+    if(!progress.wordStats[id]) progress.wordStats[id] = {seen:0, correct:0, wrong:0};
+    return progress.wordStats[id];
+  }
+
+  function registerCorrectAnswer(){
+    progress.todayCount++;
+    const t = todayStr();
+    if(progress.todayCount >= progress.dailyGoal && progress.lastStreakDate !== t){
+      progress.streak++;
+      progress.lastStreakDate = t;
+      if(progress.streak > progress.bestStreak) progress.bestStreak = progress.streak;
+    }
+    document.getElementById("streakNum").textContent = progress.streak;
+  }
+
+  function stripTurkishDiacritics(str){
+    return str
+      .replace(/ı/g,"i").replace(/İ/g,"i")
+      .replace(/ü/g,"u").replace(/Ü/g,"u")
+      .replace(/ö/g,"o").replace(/Ö/g,"o")
+      .replace(/ş/g,"s").replace(/Ş/g,"s")
+      .replace(/ç/g,"c").replace(/Ç/g,"c")
+      .replace(/ğ/g,"g").replace(/Ğ/g,"g");
+  }
+
+  function normalize(str, lang, fold){
+    const cleaned = String(str).replace(/[?？]/g,"").trim().replace(/\s+/g," ");
+    let lower = cleaned.toLocaleLowerCase(lang === "tr" ? "tr-TR" : "nl-NL");
+    if(fold && lang === "tr") lower = stripTurkishDiacritics(lower);
+    return lower;
+  }
+
+  function speak(text, lang){
+    if(!("speechSynthesis" in window)) return;
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = lang === "tr" ? "tr-TR" : "nl-NL";
+    utter.rate = 0.92;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utter);
+  }
+
+  // ---------- Category helpers ----------
+  function customCategories(){
+    const set = new Set();
+    progress.customWords.forEach(c => set.add(c.cat));
+    return [...set];
+  }
+  function allCategoryNames(){
+    return [...new Set([...BUILTIN_CATEGORIES, ...customCategories()])];
+  }
+
+  // ---------- Pool building ----------
+  function computeUnlockedTenses(){
+    const unlocked = [];
+    if(progress.grammar.completed.includes("l6")) unlocked.push("present");
+    if(progress.grammar.completed.includes("l7")) unlocked.push("past");
+    if(progress.grammar.completed.includes("l8")) unlocked.push("future");
+    return unlocked;
+  }
+
+  function buildConjugationPrompt(verb, tense, person, polarity){
+    return `"${PRONOUN_NL[person]}" + ${verb.inf} (${verb.nl}) — ${TENSE_NL[tense]}, ${POLARITY_NL[polarity]}`;
+  }
+
+  function buildFullPool(){
+    const items = [];
+    VOCAB.forEach(v => items.push({id:v.id, kind:"vocab", cat:v.cat, nl:v.nl, tr:v.tr}));
+    SENTENCES.forEach(s => items.push({id:s.id, kind:"sentence", cat:s.cat, nl:s.nl, tr:s.tr}));
+    progress.customWords.forEach(c => items.push({id:c.id, kind:c.kind, cat:c.cat, nl:c.nl, tr:c.tr}));
+
+    const unlockedTenses = computeUnlockedTenses();
+    if(unlockedTenses.length){
+      VERBS.forEach(verb => {
+        unlockedTenses.forEach(tense => {
+          ["affirmative","negative","question"].forEach(pol => {
+            Object.keys(PRONOUN_NL).forEach(person => {
+              const id = `c_${verb.inf}_${tense}_${pol}_${person}`;
+              items.push({
+                id, kind:"conjugation", cat:"Grammatica",
+                nl: buildConjugationPrompt(verb, tense, person, pol),
+                tr: verb.forms[tense][pol][person]
+              });
+            });
+          });
+        });
+      });
+    }
+    return items;
+  }
+
+  function filterPool(items, filter){
+    if(filter === "all") return items;
+    if(filter === "vocab") return items.filter(i => i.kind === "vocab");
+    if(filter === "sentence") return items.filter(i => i.kind === "sentence");
+    if(filter === "grammar") return items.filter(i => i.kind === "conjugation");
+    return items;
+  }
+
+  // ---------- Practice logic ----------
+  function pickItem(pool){
+    const weighted = pool.map(item => {
+      const s = progress.wordStats[item.id] || {seen:0, correct:0, wrong:0};
+      const weight = 1 + s.wrong * 2 - Math.min(s.correct, 3) * 0.4;
+      return {item, weight: Math.max(weight, 0.2)};
+    });
+    const total = weighted.reduce((a,b)=>a+b.weight,0);
+    let r = Math.random() * total;
+    for(const w of weighted){
+      r -= w.weight;
+      if(r <= 0) return w.item;
+    }
+    return weighted[weighted.length-1].item;
+  }
+
+  function buildChoices(item, direction, correctAnswer, pool){
+    const isConj = item.kind === "conjugation";
+    const valueOf = (d) => isConj ? d.tr : (direction === "nl2tr" ? d.tr : d.nl);
+    const shuffled = pool.filter(p => p.id !== item.id).sort(() => Math.random() - 0.5);
+    const distractors = [];
+    for(const d of shuffled){
+      const val = valueOf(d);
+      if(val !== correctAnswer && !distractors.includes(val)) distractors.push(val);
+      if(distractors.length >= 3) break;
+    }
+    const opts = [...distractors, correctAnswer].sort(() => Math.random() - 0.5);
+    return opts;
+  }
+
+  function newQuestion(){
+    const fullPool = buildFullPool();
+    const pool = filterPool(fullPool, currentFilter);
+
+    if(pool.length === 0){
+      document.getElementById("practiceBody").style.display = "none";
+      document.getElementById("emptyPoolMsg").style.display = "block";
+      return;
+    }
+    document.getElementById("practiceBody").style.display = "block";
+    document.getElementById("emptyPoolMsg").style.display = "none";
+
+    const item = pickItem(pool);
+    let direction, promptText, correctAnswer, promptLangLabel;
+
+    if(item.kind === "conjugation"){
+      direction = "fixed";
+      promptText = item.nl;
+      correctAnswer = item.tr;
+      promptLangLabel = "Opdracht";
+    } else {
+      direction = Math.random() < 0.5 ? "nl2tr" : "tr2nl";
+      promptText = direction === "nl2tr" ? item.nl : item.tr;
+      correctAnswer = direction === "nl2tr" ? item.tr : item.nl;
+      promptLangLabel = direction === "nl2tr" ? "Nederlands" : "Türkçe";
+    }
+
+    current = {item, direction, promptText, correctAnswer, answered:false, pool};
+
+    document.getElementById("itemTypePill").textContent = item.kind === "vocab" ? "Woord" : item.kind === "sentence" ? "Zin" : "Grammatica";
+    document.getElementById("promptLang").textContent = promptLangLabel;
+    document.getElementById("promptText").textContent = promptText;
+    document.getElementById("promptWordWrap").className = item.kind === "conjugation" ? "prompt-word small" : "prompt-word";
+    document.getElementById("feedback").textContent = "";
+    document.getElementById("feedback").className = "feedback";
+    document.getElementById("nextBtn").disabled = true;
+
+    // Elke nieuwe vraag start altijd in typ-modus; je kunt per vraag naar meerkeuze wisselen als je het niet weet.
+    currentMode = "type";
+    updateModeButtons();
+    renderAnswerUI();
+  }
+
+  function updateModeButtons(){
+    const mcBtn = document.getElementById("modeMC");
+    const typeBtn = document.getElementById("modeType");
+    mcBtn.classList.toggle("active", currentMode === "mc");
+    typeBtn.classList.toggle("active", currentMode === "type");
+    const locked = !!(current && current.answered);
+    mcBtn.disabled = locked;
+    typeBtn.disabled = locked;
+  }
+
+  function renderAnswerUI(){
+    const {item, direction, correctAnswer, pool} = current;
+    if(currentMode === "mc"){
+      document.getElementById("choicesWrap").style.display = "flex";
+      document.getElementById("typeWrap").style.display = "none";
+      const opts = buildChoices(item, direction, correctAnswer, pool);
+      const wrap = document.getElementById("choicesWrap");
+      wrap.innerHTML = "";
+      opts.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.className = "choice-btn";
+        btn.textContent = opt;
+        btn.onclick = () => handleAnswer(opt);
+        wrap.appendChild(btn);
+      });
+    } else {
+      document.getElementById("choicesWrap").style.display = "none";
+      document.getElementById("typeWrap").style.display = "flex";
+      const input = document.getElementById("typeInput");
+      input.value = "";
+      input.className = "";
+      input.disabled = false;
+      input.focus();
+    }
+  }
+
+  async function handleAnswer(givenAnswer){
+    if(current.answered) return;
+    current.answered = true;
+
+    const answerLang = current.item.kind === "conjugation" ? "tr" : (current.direction === "nl2tr" ? "tr" : "nl");
+    const isCorrect = normalize(givenAnswer, answerLang, true) === normalize(current.correctAnswer, answerLang, true);
+    const isExactSpelling = normalize(givenAnswer, answerLang, false) === normalize(current.correctAnswer, answerLang, false);
+
+    const stat = getStat(current.item.id);
+    stat.seen++;
+    if(isCorrect) stat.correct++; else stat.wrong++;
+    progress.totalPracticed++;
+
+    const fb = document.getElementById("feedback");
+    if(isCorrect){
+      if(isExactSpelling){
+        fb.textContent = "Doğru! Goed zo.";
+      } else {
+        fb.textContent = `Doğru! Correcte schrijfwijze: "${current.correctAnswer}"`;
+      }
+      fb.className = "feedback ok";
+    } else {
+      fb.textContent = `Niet helemaal — juiste antwoord: "${current.correctAnswer}"`;
+      fb.className = "feedback no";
+    }
+
+    if(currentMode === "mc"){
+      [...document.querySelectorAll("#choicesWrap .choice-btn")].forEach(btn => {
+        btn.disabled = true;
+        const lang = current.item.kind === "conjugation" ? "tr" : (current.direction === "nl2tr" ? "tr" : "nl");
+        if(normalize(btn.textContent, lang, true) === normalize(current.correctAnswer, lang, true)){
+          btn.classList.add("correct");
+        } else if(btn.textContent === givenAnswer){
+          btn.classList.add("incorrect");
+        }
+      });
+    } else {
+      const input = document.getElementById("typeInput");
+      input.classList.add(isCorrect ? "correct" : "incorrect");
+      input.disabled = true;
+    }
+
+    if(isCorrect) registerCorrectAnswer();
+    document.getElementById("nextBtn").disabled = false;
+    updateModeButtons();
+    await saveProgress();
+  }
+
+  // ---------- Word of the day ----------
+  function renderWordOfDay(){
+    const pool = [...VOCAB, ...SENTENCES];
+    const dayIndex = Math.floor(Date.now() / 86400000);
+    const item = pool[dayIndex % pool.length];
+    document.getElementById("wodWord").textContent = item.tr;
+    document.getElementById("wodNl").textContent = item.nl;
+    document.getElementById("wodCard").style.display = "flex";
+    document.getElementById("wodSpeak").onclick = () => speak(item.tr, "tr");
+  }
+
+  // ---------- Progress tab ----------
+  function renderProgressTab(){
+    document.getElementById("statStreak").textContent = progress.streak;
+    document.getElementById("statBest").textContent = progress.bestStreak;
+    document.getElementById("statTotal").textContent = progress.totalPracticed;
+    const mastered = Object.values(progress.wordStats).filter(s => s.correct >= 3).length;
+    document.getElementById("statMastered").textContent = mastered;
+
+    document.getElementById("dailyGoalInput").value = progress.dailyGoal;
+    document.getElementById("todayCount").textContent = Math.min(progress.todayCount, progress.dailyGoal);
+    document.getElementById("todayGoalLabel").textContent = progress.dailyGoal;
+    const pct = Math.min(100, Math.round((progress.todayCount / progress.dailyGoal) * 100));
+    document.getElementById("todayFill").style.width = pct + "%";
+
+    document.getElementById("lessonsCompletedLabel").textContent = progress.grammar.completed.length;
+
+    const pool = [...VOCAB, ...SENTENCES, ...progress.customWords];
+    const cats = allCategoryNames();
+    const catList = document.getElementById("catList");
+    catList.innerHTML = "";
+    cats.forEach(cat => {
+      const items = pool.filter(p => p.cat === cat);
+      if(items.length === 0) return;
+      const known = items.filter(i => (progress.wordStats[i.id]||{}).correct >= 2).length;
+      const pctCat = Math.round((known / items.length) * 100);
+      const row = document.createElement("div");
+      row.className = "cat-row";
+      row.innerHTML = `<div class="name">${cat}</div><div class="cat-bar"><div class="cat-bar-fill" style="width:${pctCat}%;"></div></div><div class="pct">${pctCat}%</div>`;
+      catList.appendChild(row);
+    });
+
+    const unlockedTenses = computeUnlockedTenses();
+    if(unlockedTenses.length){
+      const total = VERBS.length * unlockedTenses.length * 3 * 6;
+      let known = 0;
+      VERBS.forEach(verb => {
+        unlockedTenses.forEach(tense => {
+          ["affirmative","negative","question"].forEach(pol => {
+            Object.keys(PRONOUN_NL).forEach(person => {
+              const id = `c_${verb.inf}_${tense}_${pol}_${person}`;
+              if((progress.wordStats[id]||{}).correct >= 2) known++;
+            });
+          });
+        });
+      });
+      const pctCat = total ? Math.round((known/total)*100) : 0;
+      const row = document.createElement("div");
+      row.className = "cat-row";
+      row.innerHTML = `<div class="name">Vervoegingen</div><div class="cat-bar"><div class="cat-bar-fill" style="width:${pctCat}%;"></div></div><div class="pct">${pctCat}%</div>`;
+      catList.appendChild(row);
+    }
+  }
+
+  // ---------- Grammar tab ----------
+  function isLessonUnlocked(index){
+    if(index === 0) return true;
+    return progress.grammar.completed.includes(GRAMMAR_LESSONS[index-1].id);
+  }
+
+  function renderLessonList(){
+    document.getElementById("grammarProgressLabel").textContent = `${progress.grammar.completed.length} van ${GRAMMAR_LESSONS.length} lessen voltooid`;
+    const wrap = document.getElementById("lessonList");
+    wrap.innerHTML = "";
+    GRAMMAR_LESSONS.forEach((lesson, idx) => {
+      const done = progress.grammar.completed.includes(lesson.id);
+      const unlocked = isLessonUnlocked(idx);
+      const row = document.createElement("div");
+      row.className = "lesson-row" + (unlocked ? "" : " locked");
+      const numClass = done ? "lesson-num done" : (unlocked ? "lesson-num" : "lesson-num locked");
+      const scoreInfo = progress.grammar.scores[lesson.id];
+      let statusText = "Vergrendeld";
+      if(done && scoreInfo) statusText = `Voltooid ✓ ${scoreInfo.correct}/${scoreInfo.total}`;
+      else if(unlocked) statusText = "Beschikbaar";
+      row.innerHTML = `<div class="${numClass}">${done ? "✓" : (idx+1)}</div><div class="lesson-title">${lesson.title}</div><div class="lesson-status">${statusText}</div>`;
+      if(unlocked){
+        row.onclick = () => openLesson(idx);
+      }
+      wrap.appendChild(row);
+    });
+  }
+
+  function openLesson(index){
+    currentLessonIndex = index;
+    const lesson = GRAMMAR_LESSONS[index];
+    document.getElementById("grammarListView").style.display = "none";
+    document.getElementById("lessonDetailView").style.display = "block";
+    document.getElementById("lessonQuizView").style.display = "none";
+    document.getElementById("lessonResultView").style.display = "none";
+
+    document.getElementById("lessonTitle").textContent = lesson.title;
+    document.getElementById("lessonExplain").innerHTML = lesson.explanation.map(p => `<p>${p}</p>`).join("");
+
+    const exWrap = document.getElementById("lessonExamples");
+    exWrap.innerHTML = "";
+    lesson.examples.forEach(ex => {
+      const row = document.createElement("div");
+      row.className = "example-row";
+      row.innerHTML = `<span class="example-tr">${ex.tr}</span><span class="example-nl">${ex.nl}</span>`;
+      exWrap.appendChild(row);
+    });
+
+    document.getElementById("lessonExceptions").innerHTML = `<b>Uitzonderingen &amp; valkuilen:</b> ${lesson.exceptions}`;
+
+    const done = progress.grammar.completed.includes(lesson.id);
+    document.getElementById("startQuizBtn").textContent = done ? "Toets opnieuw doen" : "Start toets";
+    document.getElementById("startQuizBtn").onclick = () => startQuiz(lesson);
+  }
+
+  function shuffleArray(arr){ return [...arr].sort(() => Math.random() - 0.5); }
+
+  function startQuiz(lesson){
+    const questions = lesson.quiz.map(q => ({
+      q: q.q,
+      choices: shuffleArray(q.choices),
+      answer: q.answer
+    }));
+    quizState = { lesson, questions: shuffleArray(questions), index: 0, correct: 0, answered:false };
+    document.getElementById("lessonDetailView").style.display = "none";
+    document.getElementById("lessonQuizView").style.display = "block";
+    renderQuizQuestion();
+  }
+
+  function renderQuizQuestion(){
+    const total = quizState.questions.length;
+    document.getElementById("quizProgressLabel").textContent = `Vraag ${quizState.index+1} van ${total}`;
+    const q = quizState.questions[quizState.index];
+    document.getElementById("quizQuestionText").textContent = q.q;
+    document.getElementById("quizFeedback").textContent = "";
+    document.getElementById("quizFeedback").className = "feedback";
+    document.getElementById("quizNextBtn").disabled = true;
+    quizState.answered = false;
+
+    const wrap = document.getElementById("quizChoicesWrap");
+    wrap.innerHTML = "";
+    q.choices.forEach(opt => {
+      const btn = document.createElement("button");
+      btn.className = "choice-btn";
+      btn.textContent = opt;
+      btn.onclick = () => handleQuizAnswer(opt);
+      wrap.appendChild(btn);
+    });
+  }
+
+  async function handleQuizAnswer(selected){
+    if(quizState.answered) return;
+    quizState.answered = true;
+    const q = quizState.questions[quizState.index];
+    const isCorrect = selected === q.answer;
+    if(isCorrect){ quizState.correct++; registerCorrectAnswer(); }
+
+    const fb = document.getElementById("quizFeedback");
+    fb.textContent = isCorrect ? "Doğru! Goed zo." : `Niet helemaal — juiste antwoord: "${q.answer}"`;
+    fb.className = "feedback " + (isCorrect ? "ok" : "no");
+
+    [...document.querySelectorAll("#quizChoicesWrap .choice-btn")].forEach(btn => {
+      btn.disabled = true;
+      if(btn.textContent === q.answer) btn.classList.add("correct");
+      else if(btn.textContent === selected) btn.classList.add("incorrect");
+    });
+
+    document.getElementById("quizNextBtn").disabled = false;
+    await saveProgress();
+  }
+
+  async function finishQuiz(){
+    const total = quizState.questions.length;
+    const correct = quizState.correct;
+    const passThreshold = Math.ceil(total * 0.8);
+    const passed = correct >= passThreshold;
+    const lesson = quizState.lesson;
+
+    progress.grammar.scores[lesson.id] = {correct, total};
+    if(passed && !progress.grammar.completed.includes(lesson.id)){
+      progress.grammar.completed.push(lesson.id);
+    }
+    await saveProgress();
+
+    document.getElementById("lessonQuizView").style.display = "none";
+    document.getElementById("lessonResultView").style.display = "block";
+    const verdictEl = document.getElementById("resultVerdict");
+    verdictEl.textContent = passed ? "Geslaagd! 🎉" : "Nog niet gehaald";
+    verdictEl.className = "verdict " + (passed ? "pass" : "fail");
+    document.getElementById("resultScore").textContent = `${correct}/${total}`;
+    const contBtn = document.getElementById("resultContinueBtn");
+    contBtn.textContent = passed ? "Verder naar lessen" : "Opnieuw proberen";
+    contBtn.onclick = () => {
+      if(passed){
+        document.getElementById("lessonResultView").style.display = "none";
+        document.getElementById("grammarListView").style.display = "block";
+        renderLessonList();
+      } else {
+        startQuiz(lesson);
+      }
+    };
+  }
+
+  // ---------- Toevoegen tab ----------
+  function renderCategoryOptions(){
+    const names = allCategoryNames();
+    ["addCat", "bulkCat"].forEach(selId => {
+      const sel = document.getElementById(selId);
+      const prevValue = sel.value;
+      sel.innerHTML = "";
+      names.forEach(n => {
+        const opt = document.createElement("option");
+        opt.value = n; opt.textContent = n;
+        sel.appendChild(opt);
+      });
+      const newOpt = document.createElement("option");
+      newOpt.value = "__new__";
+      newOpt.textContent = "+ Nieuwe categorie…";
+      sel.appendChild(newOpt);
+      if(names.includes(prevValue)) sel.value = prevValue;
+    });
+  }
+
+  function resolveDelimiter(){
+    const val = document.getElementById("bulkDelim").value;
+    if(val === "tab") return "\t";
+    if(val === "semicolon") return ";";
+    if(val === "equals") return "=";
+    if(val === "comma") return ",";
+    if(val === "dash") return "-";
+    return document.getElementById("bulkDelimOther").value;
+  }
+
+  function guessKind(nl, tr){
+    const wordCount = s => s.trim().split(/\s+/).filter(Boolean).length;
+    const looksLikeSentence = wordCount(nl) > 2 || wordCount(tr) > 2 || /[.!?]$/.test(nl.trim()) || /[.!?]$/.test(tr.trim());
+    return looksLikeSentence ? "sentence" : "vocab";
+  }
+
+  async function bulkImport(){
+    const delim = resolveDelimiter();
+    if(!delim){
+      document.getElementById("bulkResult").textContent = "Kies of vul eerst een scheidingsteken in.";
+      return;
+    }
+    let cat = document.getElementById("bulkCat").value;
+    if(cat === "__new__") cat = document.getElementById("bulkNewCat").value.trim();
+    if(!cat){
+      document.getElementById("bulkResult").textContent = "Kies of vul eerst een categorie in.";
+      return;
+    }
+
+    const lines = document.getElementById("bulkText").value.split(/\r?\n/);
+    const existingKeys = new Set(progress.customWords.map(c => (c.nl.trim()+"|"+c.tr.trim()).toLocaleLowerCase("tr-TR")));
+    [...VOCAB, ...SENTENCES].forEach(w => existingKeys.add((w.nl.trim()+"|"+w.tr.trim()).toLocaleLowerCase("tr-TR")));
+
+    let added = 0, skippedDup = 0, invalid = 0;
+    const newEntries = [];
+
+    lines.forEach(raw => {
+      const line = raw.trim();
+      if(!line) return;
+      const idx = line.indexOf(delim);
+      if(idx === -1){ invalid++; return; }
+      const nl = line.slice(0, idx).trim();
+      const tr = line.slice(idx + delim.length).trim();
+      if(!nl || !tr){ invalid++; return; }
+      const key = (nl+"|"+tr).toLocaleLowerCase("tr-TR");
+      if(existingKeys.has(key)){ skippedDup++; return; }
+      existingKeys.add(key);
+      const kind = guessKind(nl, tr);
+      const id = "cw_" + Date.now() + "_" + Math.floor(Math.random()*100000) + "_" + added;
+      newEntries.push({id, kind, cat, nl, tr});
+      added++;
+    });
+
+    if(newEntries.length){
+      progress.customWords.push(...newEntries);
+      await saveProgress();
+    }
+
+    const parts = [];
+    parts.push(`${added} toegevoegd`);
+    if(skippedDup) parts.push(`${skippedDup} overgeslagen (bestond al)`);
+    if(invalid) parts.push(`${invalid} ongeldig (geen scheidingsteken gevonden)`);
+    document.getElementById("bulkResult").textContent = parts.join(" · ");
+
+    if(added){
+      document.getElementById("bulkText").value = "";
+      renderCategoryOptions();
+      renderCustomList();
+    }
+  }
+
+  function renderCustomList(){
+    const wrap = document.getElementById("customList");
+    wrap.innerHTML = "";
+    if(progress.customWords.length === 0){
+      wrap.innerHTML = '<div class="empty-note">Je hebt nog geen eigen woorden of zinnen toegevoegd.</div>';
+      return;
+    }
+    [...progress.customWords].reverse().forEach(c => {
+      const row = document.createElement("div");
+      row.className = "custom-item";
+      row.innerHTML = `<div class="txt"><div class="tr">${c.tr}</div><div class="nl">${c.nl} · ${c.cat}</div></div><button class="del" data-id="${c.id}">🗑</button>`;
+      row.querySelector(".del").onclick = async () => {
+        progress.customWords = progress.customWords.filter(x => x.id !== c.id);
+        await saveProgress();
+        renderCustomList();
+        renderCategoryOptions();
+      };
+      wrap.appendChild(row);
+    });
+  }
+
+  let addKind = "vocab";
+
+  async function submitCustomWord(){
+    const nl = document.getElementById("addNl").value.trim();
+    const tr = document.getElementById("addTr").value.trim();
+    let cat = document.getElementById("addCat").value;
+    if(cat === "__new__"){
+      cat = document.getElementById("addNewCat").value.trim();
+    }
+    if(!nl || !tr || !cat){
+      alert("Vul Nederlands, Turks en een categorie in.");
+      return;
+    }
+    const id = "cw_" + Date.now() + "_" + Math.floor(Math.random()*1000);
+    progress.customWords.push({id, kind: addKind, cat, nl, tr});
+    await saveProgress();
+    document.getElementById("addNl").value = "";
+    document.getElementById("addTr").value = "";
+    document.getElementById("addNewCat").value = "";
+    document.getElementById("newCatGroup").style.display = "none";
+    renderCategoryOptions();
+    renderCustomList();
+  }
+
+  // ---------- Tab switching ----------
+  function switchTab(tab){
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelector(`.tab-btn[data-tab="${tab}"]`).classList.add("active");
+    ["practice","grammar","progress","add"].forEach(t => {
+      document.getElementById("tab-" + t).style.display = (t === tab) ? "block" : "none";
+    });
+    if(tab === "progress") renderProgressTab();
+    if(tab === "grammar"){
+      document.getElementById("grammarListView").style.display = "block";
+      document.getElementById("lessonDetailView").style.display = "none";
+      document.getElementById("lessonQuizView").style.display = "none";
+      document.getElementById("lessonResultView").style.display = "none";
+      renderLessonList();
+    }
+    if(tab === "add"){
+      renderCategoryOptions();
+      renderCustomList();
+    }
+  }
+
+  // ---------- Event wiring ----------
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+  });
+
+  document.querySelectorAll(".filter-chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      document.querySelectorAll(".filter-chip").forEach(c => c.classList.remove("active"));
+      chip.classList.add("active");
+      currentFilter = chip.dataset.filter;
+      newQuestion();
+    });
+  });
+
+  document.getElementById("modeMC").addEventListener("click", () => {
+    if(!current || current.answered) return;
+    currentMode = "mc";
+    updateModeButtons();
+    renderAnswerUI();
+  });
+  document.getElementById("modeType").addEventListener("click", () => {
+    if(!current || current.answered) return;
+    currentMode = "type";
+    updateModeButtons();
+    renderAnswerUI();
+  });
+
+  document.getElementById("typeSubmit").addEventListener("click", () => {
+    const val = document.getElementById("typeInput").value;
+    if(!val.trim() || current.answered) return;
+    handleAnswer(val);
+  });
+  document.getElementById("typeInput").addEventListener("keydown", (e) => {
+    if(e.key === "Enter"){
+      const val = e.target.value;
+      if(val.trim() && !current.answered) handleAnswer(val);
+    }
+  });
+
+  document.getElementById("speakBtn").addEventListener("click", () => {
+    if(!current) return;
+    const lang = current.item.kind === "conjugation" ? "nl" : (current.direction === "nl2tr" ? "nl" : "tr");
+    speak(current.promptText, lang);
+  });
+
+  document.getElementById("nextBtn").addEventListener("click", () => newQuestion());
+
+  document.getElementById("dailyGoalInput").addEventListener("change", async (e) => {
+    let val = parseInt(e.target.value, 10);
+    if(isNaN(val) || val < 3) val = 3;
+    if(val > 50) val = 50;
+    progress.dailyGoal = val;
+    await saveProgress();
+    renderProgressTab();
+  });
+
+  document.getElementById("resetBtn").addEventListener("click", async () => {
+    if(!confirm("Weet je zeker dat je alle voortgang wilt wissen? Dit verwijdert ook je eigen toegevoegde woorden en grammatica-voortgang.")) return;
+    try{ await window.storage.delete(STORAGE_KEY); }catch(e){}
+    progress = defaultProgress();
+    document.getElementById("streakNum").textContent = progress.streak;
+    renderProgressTab();
+  });
+
+  document.getElementById("backToList").addEventListener("click", () => {
+    document.getElementById("lessonDetailView").style.display = "none";
+    document.getElementById("lessonQuizView").style.display = "none";
+    document.getElementById("lessonResultView").style.display = "none";
+    document.getElementById("grammarListView").style.display = "block";
+    renderLessonList();
+  });
+
+  document.getElementById("quizNextBtn").addEventListener("click", () => {
+    if(quizState.index + 1 < quizState.questions.length){
+      quizState.index++;
+      renderQuizQuestion();
+    } else {
+      finishQuiz();
+    }
+  });
+
+  document.getElementById("kindWord").addEventListener("click", () => {
+    addKind = "vocab";
+    document.getElementById("kindWord").classList.add("active");
+    document.getElementById("kindSentence").classList.remove("active");
+  });
+  document.getElementById("kindSentence").addEventListener("click", () => {
+    addKind = "sentence";
+    document.getElementById("kindSentence").classList.add("active");
+    document.getElementById("kindWord").classList.remove("active");
+  });
+  document.getElementById("addCat").addEventListener("change", (e) => {
+    document.getElementById("newCatGroup").style.display = (e.target.value === "__new__") ? "block" : "none";
+  });
+  document.getElementById("addSubmitBtn").addEventListener("click", submitCustomWord);
+
+  document.getElementById("bulkDelim").addEventListener("change", (e) => {
+    document.getElementById("bulkDelimOtherGroup").style.display = (e.target.value === "other") ? "block" : "none";
+  });
+  document.getElementById("bulkCat").addEventListener("change", (e) => {
+    document.getElementById("bulkNewCatGroup").style.display = (e.target.value === "__new__") ? "block" : "none";
+  });
+  document.getElementById("bulkImportBtn").addEventListener("click", bulkImport);
+
+  // ---------- Init ----------
+  (async function init(){
+    await loadProgress();
+    document.getElementById("streakNum").textContent = progress.streak;
+    renderWordOfDay();
+    newQuestion();
+    document.getElementById("loading").style.display = "none";
+  })();
+})();
+</script>
+</body>
+</html>
