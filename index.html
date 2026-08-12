@@ -114,6 +114,11 @@
   .feedback.ok{color:var(--good); font-weight:700;}
   .feedback.no{color:var(--bad); font-weight:700;}
 
+  .answer-reveal{margin-top:12px; padding:16px; border-radius:14px; background:var(--card); border:1px solid var(--line); text-align:center;}
+  .answer-reveal-label{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.6px; color:var(--ink-soft);}
+  .answer-reveal-tr{font-size:25px; font-weight:700; color:var(--bosphorus); margin-top:5px; line-height:1.3;}
+  .answer-reveal-nl{font-size:15.5px; color:var(--ink-soft); margin-top:4px; line-height:1.4;}
+
   .next-btn{margin-top:16px; width:100%; padding:13px; border-radius:12px; border:none; background:var(--tulip); color:white; font-weight:700; font-size:15px; cursor:pointer; font-family:inherit; letter-spacing:0.2px;}
   .next-btn:disabled{background:#E4E2DC; color:#A6A49D; cursor:default;}
   .override-btn{margin-top:10px; width:100%; padding:10px; border-radius:12px; border:1.5px dashed var(--gold); background:rgba(201,162,75,0.08); color:#8A6C2C; font-weight:600; font-size:13px; cursor:pointer; font-family:inherit;}
@@ -289,6 +294,11 @@
           <button id="dontKnowBtn" class="dontknow-btn">Ik weet het niet</button>
 
           <div id="feedback" class="feedback"></div>
+          <div id="answerRevealCard" class="answer-reveal" style="display:none;">
+            <div class="answer-reveal-label">Juiste antwoord</div>
+            <div class="answer-reveal-tr" id="answerRevealTr"></div>
+            <div class="answer-reveal-nl" id="answerRevealNl"></div>
+          </div>
           <button id="overrideCorrectBtn" class="override-btn" style="display:none;">Toch goed rekenen (kleine tikfout)</button>
           <button id="nextBtn" class="next-btn" disabled>Volgende →</button>
         </div>
@@ -959,6 +969,12 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
     };
   }
 
+  function showAnswerRevealCard(item){
+    document.getElementById("answerRevealTr").textContent = item.tr;
+    document.getElementById("answerRevealNl").textContent = item.nl;
+    document.getElementById("answerRevealCard").style.display = "block";
+  }
+
   function newQuestion(){
     const fullPool = buildFullPool();
     const pool = filterPool(fullPool, currentFilter);
@@ -997,6 +1013,7 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
     document.getElementById("feedback").className = "feedback";
     document.getElementById("nextBtn").disabled = true;
     document.getElementById("overrideCorrectBtn").style.display = "none";
+    document.getElementById("answerRevealCard").style.display = "none";
     document.getElementById("dontKnowBtn").style.display = "block";
     document.getElementById("dontKnowBtn").disabled = false;
 
@@ -1088,8 +1105,12 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
       }
       fb.className = "feedback ok";
     } else {
-      fb.textContent = `Niet helemaal — juiste antwoord: "${current.correctAnswer}"` + listenReveal;
+      fb.textContent = (currentMode === "mc" ? "Niet helemaal — het juiste antwoord is hierboven gemarkeerd." : "Niet helemaal — hieronder het juiste antwoord.") + listenReveal;
       fb.className = "feedback no";
+    }
+
+    if(!isCorrect && currentMode !== "mc"){
+      showAnswerRevealCard(current.item);
     }
 
     if(currentMode === "listen" && current.item.kind !== "conjugation"){
@@ -1161,8 +1182,12 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
     const answerLang = current.item.kind === "conjugation" ? "tr" : (current.direction === "nl2tr" ? "tr" : "nl");
     const listenReveal = currentMode === "listen" && current.item.kind !== "conjugation" ? ` (${current.item.tr})` : "";
     const fb = document.getElementById("feedback");
-    fb.textContent = `Geen probleem — het antwoord is: "${current.correctAnswer}"` + listenReveal;
+    fb.textContent = (currentMode === "mc" ? "Geen probleem — het juiste antwoord is hierboven gemarkeerd." : "Geen probleem — hieronder het antwoord.") + listenReveal;
     fb.className = "feedback no";
+
+    if(currentMode !== "mc"){
+      showAnswerRevealCard(current.item);
+    }
 
     if(currentMode === "listen" && current.item.kind !== "conjugation"){
       document.getElementById("promptText").textContent = current.item.tr;
