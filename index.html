@@ -23,13 +23,11 @@
     --tile-white:#FFFDF8;
     --ink:#1B2B33;
     --ink-soft:#4B5D66;
-    --ink-faint:#8FA3AC;
     --gold:#C9A24B;
     --paper:var(--sand);
     --card:var(--tile-white);
     --line:rgba(15,61,92,0.14);
     --signature:var(--bosphorus);
-    --signature-deep:var(--bosphorus-deep);
     --good:var(--iznik);
     --good-bg:rgba(27,154,160,0.12);
     --bad:var(--tulip-deep);
@@ -118,6 +116,10 @@
 
   .next-btn{margin-top:16px; width:100%; padding:13px; border-radius:12px; border:none; background:var(--tulip); color:white; font-weight:700; font-size:15px; cursor:pointer; font-family:inherit; letter-spacing:0.2px;}
   .next-btn:disabled{background:#E4E2DC; color:#A6A49D; cursor:default;}
+  .override-btn{margin-top:10px; width:100%; padding:10px; border-radius:12px; border:1.5px dashed var(--gold); background:rgba(201,162,75,0.08); color:#8A6C2C; font-weight:600; font-size:13px; cursor:pointer; font-family:inherit;}
+  .override-btn:active{background:rgba(201,162,75,0.18);}
+  .dontknow-btn{display:block; margin:12px auto 0; padding:6px 4px; border:none; background:none; color:var(--ink-soft); font-size:12.5px; text-decoration:underline; cursor:pointer; font-family:inherit;}
+  .dontknow-btn:disabled{visibility:hidden;}
   .empty-pool{text-align:center; color:var(--ink-soft); font-size:13.5px; padding:20px 10px; line-height:1.6;}
 
   .stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;}
@@ -174,7 +176,7 @@
   .start-quiz-btn{margin-top:16px; width:100%; padding:13px; border-radius:12px; border:none; background:var(--iznik); color:white; font-weight:700; font-size:14.5px; cursor:pointer; font-family:inherit;}
   .quiz-progress{font-size:12px; color:var(--ink-soft); text-align:center; margin-bottom:10px;}
   .quiz-result{text-align:center; padding:20px 10px;}
-  .quiz-result .score{font-family:inherit; font-size:36px; font-weight:700; color:var(--ink); margin:10px 0; font-variant-numeric:tabular-nums;}
+  .quiz-result .score{font-family:inherit; font-size:36px; font-weight:700; color:var(--bosphorus); margin:10px 0; font-variant-numeric:tabular-nums;}
   .quiz-result .verdict{font-size:15px; font-weight:700; margin-bottom:6px;}
   .quiz-result .verdict.pass{color:var(--good);}
   .quiz-result .verdict.fail{color:var(--bad);}
@@ -274,8 +276,10 @@
             <input type="text" id="typeInput" placeholder="Typ het antwoord…" autocapitalize="off" autocorrect="off" spellcheck="false">
             <button id="typeSubmit">Check</button>
           </div>
+          <button id="dontKnowBtn" class="dontknow-btn">Ik weet het niet</button>
 
           <div id="feedback" class="feedback"></div>
+          <button id="overrideCorrectBtn" class="override-btn" style="display:none;">Toch goed rekenen (kleine tikfout)</button>
           <button id="nextBtn" class="next-btn" disabled>Volgende →</button>
         </div>
 
@@ -301,7 +305,7 @@
       <div id="lessonDetailView" style="display:none;">
         <span class="back-link" id="backToList">← Terug naar lessen</span>
         <div class="card">
-          <h2 id="lessonTitle" style="font-family:inherit;color:var(--ink);margin:0 0 12px;font-size:19px;font-weight:700;"></h2>
+          <h2 id="lessonTitle" style="font-family:inherit;color:var(--bosphorus);margin:0 0 12px;font-size:19px;font-weight:700;"></h2>
           <div class="lesson-explain" id="lessonExplain"></div>
           <div id="lessonExamples"></div>
           <div class="exceptions-box" id="lessonExceptions"></div>
@@ -634,6 +638,28 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
       .replace(/ğ/g,"g").replace(/Ğ/g,"g");
   }
 
+  // Eenvoudige Levenshtein-afstand (aantal invoeg-/verwijder-/vervangbewerkingen
+  // om van a naar b te komen) — gebruikt om kleine tikfouten te herkennen.
+  function levenshtein(a, b){
+    const m = a.length, n = b.length;
+    if(m === 0) return n;
+    if(n === 0) return m;
+    let prev = Array.from({length:n+1}, (_, i) => i);
+    for(let i = 1; i <= m; i++){
+      const cur = [i];
+      for(let j = 1; j <= n; j++){
+        const cost = a[i-1] === b[j-1] ? 0 : 1;
+        cur[j] = Math.min(
+          prev[j] + 1,      // verwijderen
+          cur[j-1] + 1,     // invoegen
+          prev[j-1] + cost  // vervangen (of gelijk)
+        );
+      }
+      prev = cur;
+    }
+    return prev[n];
+  }
+
   function normalize(str, lang, fold){
     const cleaned = String(str).replace(/[?？]/g,"").trim().replace(/\s+/g," ");
     let lower = cleaned.toLocaleLowerCase(lang === "tr" ? "tr-TR" : "nl-NL");
@@ -896,6 +922,7 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
 
     if(pool.length === 0){
       document.getElementById("practiceBody").style.display = "none";
+      document.querySelector(".practice-meta").style.display = "none";
       const emptyMsg = document.getElementById("emptyPoolMsg");
       emptyMsg.textContent = currentFilter === "difficult"
         ? "Geen moeilijke woorden op dit moment — goed bezig! Woorden komen hier terecht zodra je ze een paar keer fout hebt."
@@ -904,6 +931,7 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
       return;
     }
     document.getElementById("practiceBody").style.display = "block";
+    document.querySelector(".practice-meta").style.display = "flex";
     document.getElementById("emptyPoolMsg").style.display = "none";
 
     const item = pickDueRetryItem(pool) || pickItem(pool);
@@ -925,6 +953,9 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
     document.getElementById("feedback").textContent = "";
     document.getElementById("feedback").className = "feedback";
     document.getElementById("nextBtn").disabled = true;
+    document.getElementById("overrideCorrectBtn").style.display = "none";
+    document.getElementById("dontKnowBtn").style.display = "block";
+    document.getElementById("dontKnowBtn").disabled = false;
 
     // Elke nieuwe vraag start altijd in typ-modus (tenzij luisterstand aanstaat);
     // je kunt per vraag naar meerkeuze wisselen als je het niet weet.
@@ -991,6 +1022,7 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
   async function handleAnswer(givenAnswer){
     if(current.answered) return;
     current.answered = true;
+    document.getElementById("dontKnowBtn").style.display = "none";
 
     const answerLang = current.item.kind === "conjugation" ? "tr" : (current.direction === "nl2tr" ? "tr" : "nl");
     const isCorrect = normalize(givenAnswer, answerLang, true) === normalize(current.correctAnswer, answerLang, true);
@@ -1042,8 +1074,95 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
     } else {
       addToRetryQueue(current.item);
     }
+
+    // Bij een getypte (niet-meerkeuze) fout die dicht bij het juiste antwoord ligt
+    // (kleine tikfout), bieden we een knop om 'm zelf alsnog goed te rekenen.
+    const overrideBtn = document.getElementById("overrideCorrectBtn");
+    if(!isCorrect && currentMode !== "mc" && givenAnswer && givenAnswer.trim()){
+      const a = normalize(givenAnswer, answerLang, true);
+      const b = normalize(current.correctAnswer, answerLang, true);
+      const maxDist = b.length <= 3 ? 1 : 2;
+      const dist = levenshtein(a, b);
+      if(dist > 0 && dist <= maxDist){
+        overrideBtn.style.display = "block";
+        overrideBtn.disabled = false;
+        overrideBtn.textContent = "Toch goed rekenen (kleine tikfout)";
+        overrideBtn.onclick = () => overrideAsCorrect(current.item.id, current.correctAnswer);
+      } else {
+        overrideBtn.style.display = "none";
+      }
+    } else {
+      overrideBtn.style.display = "none";
+    }
+
     document.getElementById("nextBtn").disabled = false;
     updateModeButtons();
+    await saveProgress();
+  }
+
+  async function handleDontKnow(){
+    if(!current || current.answered) return;
+    current.answered = true;
+    document.getElementById("dontKnowBtn").style.display = "none";
+    document.getElementById("overrideCorrectBtn").style.display = "none";
+
+    const stat = getStat(current.item.id);
+    stat.seen++;
+    stat.wrong++;
+    updateSpacedRepetition(stat, false);
+    progress.totalPracticed++;
+    addToRetryQueue(current.item);
+
+    const answerLang = current.item.kind === "conjugation" ? "tr" : (current.direction === "nl2tr" ? "tr" : "nl");
+    const listenReveal = currentMode === "listen" && current.item.kind !== "conjugation" ? ` (${current.item.tr})` : "";
+    const fb = document.getElementById("feedback");
+    fb.textContent = `Geen probleem — het antwoord is: "${current.correctAnswer}"` + listenReveal;
+    fb.className = "feedback no";
+
+    if(currentMode === "listen" && current.item.kind !== "conjugation"){
+      document.getElementById("promptText").textContent = current.item.tr;
+    }
+
+    if(currentMode === "mc"){
+      [...document.querySelectorAll("#choicesWrap .choice-btn")].forEach(btn => {
+        btn.disabled = true;
+        if(normalize(btn.textContent, answerLang, true) === normalize(current.correctAnswer, answerLang, true)){
+          btn.classList.add("correct");
+        }
+      });
+    } else {
+      const input = document.getElementById("typeInput");
+      input.value = current.correctAnswer;
+      input.classList.add("incorrect");
+      input.disabled = true;
+    }
+
+    document.getElementById("nextBtn").disabled = false;
+    updateModeButtons();
+    await saveProgress();
+  }
+
+  async function overrideAsCorrect(itemId, correctAnswer){
+    if(!current || current.item.id !== itemId) return;
+    const overrideBtn = document.getElementById("overrideCorrectBtn");
+    if(overrideBtn.disabled) return;
+    overrideBtn.disabled = true;
+
+    const stat = getStat(itemId);
+    stat.wrong = Math.max(0, stat.wrong - 1);
+    stat.correct++;
+    updateSpacedRepetition(stat, true);
+    removeFromRetryQueue(itemId);
+    registerCorrectAnswer();
+
+    const fb = document.getElementById("feedback");
+    fb.textContent = `Toch goedgerekend — kleine tikfout. Juiste schrijfwijze: "${correctAnswer}"`;
+    fb.className = "feedback ok";
+    overrideBtn.textContent = "Goedgerekend ✓";
+
+    const input = document.getElementById("typeInput");
+    if(input){ input.classList.remove("incorrect"); input.classList.add("correct"); }
+
     await saveProgress();
   }
 
@@ -1485,6 +1604,8 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
       if(val.trim() && !current.answered) handleAnswer(val);
     }
   });
+
+  document.getElementById("dontKnowBtn").addEventListener("click", () => handleDontKnow());
 
   document.getElementById("speakBtn").addEventListener("click", () => {
     if(!current) return;
