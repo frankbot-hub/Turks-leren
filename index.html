@@ -140,6 +140,16 @@
   .cat-bar-fill{height:100%; background:var(--gold);}
   .cat-row .pct{width:34px; text-align:right; color:var(--ink-soft); font-size:11px;}
 
+  .heatmap{display:flex; gap:3px; overflow-x:auto; padding-bottom:4px;}
+  .heat-week{display:flex; flex-direction:column; gap:3px;}
+  .heat-cell{width:11px; height:11px; border-radius:3px; background:rgba(15,61,92,0.08); flex-shrink:0;}
+  .heat-cell.heat-0{background:rgba(15,61,92,0.08);}
+  .heat-cell.heat-1{background:rgba(95,193,196,0.35);}
+  .heat-cell.heat-2{background:rgba(27,154,160,0.55);}
+  .heat-cell.heat-3{background:rgba(27,154,160,0.8);}
+  .heat-cell.heat-4{background:var(--bosphorus);}
+  .heat-cell.heat-future{background:transparent;}
+
   .reset-btn{margin-top:22px; width:100%; padding:11px; border-radius:12px; border:1px solid rgba(161,87,80,0.35); background:none; color:var(--bad); font-weight:600; font-size:13px; cursor:pointer; font-family:inherit;}
 
   .loading-screen{position:fixed; inset:0; background:var(--signature); color:var(--card); display:flex; align-items:center; justify-content:center; font-size:14px; z-index:50;}
@@ -345,6 +355,19 @@
       </div>
 
       <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="font-size:12.5px;color:var(--ink-soft);font-weight:600;">Activiteit — laatste 14 weken</div>
+          <div id="heatmapLegend" style="display:flex;align-items:center;gap:3px;font-size:10px;color:var(--ink-soft);">
+            <span>minder</span>
+            <span class="heat-cell heat-0"></span><span class="heat-cell heat-1"></span><span class="heat-cell heat-2"></span><span class="heat-cell heat-3"></span><span class="heat-cell heat-4"></span>
+            <span>meer</span>
+          </div>
+        </div>
+        <div id="activityHeatmap" class="heatmap"></div>
+        <button id="shareWeekBtn" class="start-quiz-btn" style="margin-top:16px;">Deel je week</button>
+      </div>
+
+      <div class="card">
         <div class="goal-row">
           <label for="dailyGoalInput">Dagelijks doel (goede antwoorden)</label>
           <input type="number" id="dailyGoalInput" min="3" max="50" value="10">
@@ -463,7 +486,16 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
   let quizState = null;
   let currentLessonIndex = null;
 
-  const todayStr = () => new Date().toISOString().slice(0,10);
+  // Lokale (niet-UTC) datumnotatie "JJJJ-MM-DD". Belangrijk: new Date().toISOString()
+  // rekent in UTC, en Nederland loopt daar 1-2 uur op voor — rond middernacht zou dat
+  // de streak, herhaalplanning en activiteitskalender een dag laten verschuiven.
+  function localDateStr(d){
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
+  const todayStr = () => localDateStr(new Date());
 
   function defaultProgress(){
     return {
@@ -476,8 +508,15 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
       dailyGoal: 10,
       totalPracticed: 0,
       customWords: [],
-      grammar: { completed: [], scores: {} }
+      grammar: { completed: [], scores: {} },
+      dailyLog: {} // { "2026-08-11": 12, ... } — aantal geoefende items per dag, voor de activiteitskalender
     };
+  }
+
+  function logDailyActivity(){
+    if(!progress.dailyLog) progress.dailyLog = {};
+    const t = todayStr();
+    progress.dailyLog[t] = (progress.dailyLog[t] || 0) + 1;
   }
 
   // window.storage is alleen beschikbaar binnen de Claude.ai-artifact-omgeving.
@@ -574,9 +613,13 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
     if(!progress.customWords) progress.customWords = [];
     progress.customWords.forEach(c => { if(c.unite === undefined) c.unite = 0; });
     if(!progress.grammar) progress.grammar = { completed: [], scores: {} };
+    if(!progress.dailyLog) progress.dailyLog = {};
+    // Bewaar maximaal een jaar aan geschiedenis, zodat het bestand niet eindeloos groeit.
+    const oneYearAgo = localDateStr(new Date(Date.now() - 365*86400000));
+    Object.keys(progress.dailyLog).forEach(d => { if(d < oneYearAgo) delete progress.dailyLog[d]; });
     const t = todayStr();
     if(progress.todayDate !== t){
-      const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0,10);
+      const yesterday = localDateStr(new Date(Date.now() - 86400000));
       if(progress.lastStreakDate !== yesterday && progress.lastStreakDate !== t){
         progress.streak = 0;
       }
@@ -597,7 +640,7 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
   function addDays(dateStr, days){
     const d = new Date(dateStr + "T00:00:00");
     d.setDate(d.getDate() + days);
-    return d.toISOString().slice(0,10);
+    return localDateStr(d);
   }
 
   // ---------- Spaced repetition ----------
@@ -1033,6 +1076,7 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
     if(isCorrect) stat.correct++; else stat.wrong++;
     updateSpacedRepetition(stat, isCorrect);
     progress.totalPracticed++;
+    logDailyActivity();
 
     const fb = document.getElementById("feedback");
     const listenReveal = currentMode === "listen" && current.item.kind !== "conjugation" ? ` (${current.item.tr})` : "";
@@ -1111,6 +1155,7 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
     stat.wrong++;
     updateSpacedRepetition(stat, false);
     progress.totalPracticed++;
+    logDailyActivity();
     addToRetryQueue(current.item);
 
     const answerLang = current.item.kind === "conjugation" ? "tr" : (current.direction === "nl2tr" ? "tr" : "nl");
@@ -1178,6 +1223,142 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
   }
 
   // ---------- Progress tab ----------
+  // ---------- Activiteitskalender ----------
+  // ---------- Deel je week ----------
+  function getCurrentWeekMonday(){
+    const today = new Date(); today.setHours(0,0,0,0);
+    const dow = (today.getDay() + 6) % 7;
+    const monday = new Date(today);
+    monday.setDate(monday.getDate() - dow);
+    return monday;
+  }
+
+  function computeWeekStats(){
+    const monday = getCurrentWeekMonday();
+    let total = 0, daysActive = 0;
+    for(let i = 0; i < 7; i++){
+      const d = new Date(monday); d.setDate(d.getDate() + i);
+      const key = localDateStr(d);
+      const count = (progress.dailyLog && progress.dailyLog[key]) || 0;
+      total += count;
+      if(count > 0) daysActive++;
+    }
+    const sunday = new Date(monday); sunday.setDate(sunday.getDate() + 6);
+    return {total, daysActive, monday, sunday};
+  }
+
+  function formatDutchDateRange(monday, sunday){
+    const maanden = ["januari","februari","maart","april","mei","juni","juli","augustus","september","oktober","november","december"];
+    const sameMonth = monday.getMonth() === sunday.getMonth();
+    if(sameMonth){
+      return `${monday.getDate()} – ${sunday.getDate()} ${maanden[sunday.getMonth()]} ${sunday.getFullYear()}`;
+    }
+    return `${monday.getDate()} ${maanden[monday.getMonth()]} – ${sunday.getDate()} ${maanden[sunday.getMonth()]} ${sunday.getFullYear()}`;
+  }
+
+  async function generateWeekCardBlob(){
+    const stats = computeWeekStats();
+    const canvas = document.createElement("canvas");
+    canvas.width = 800; canvas.height = 1000;
+    const ctx = canvas.getContext("2d");
+
+    const r = 36;
+    ctx.beginPath();
+    ctx.moveTo(r,0);
+    ctx.arcTo(800,0,800,1000,r);
+    ctx.arcTo(800,1000,0,1000,r);
+    ctx.arcTo(0,1000,0,0,r);
+    ctx.arcTo(0,0,800,0,r);
+    ctx.closePath();
+    ctx.clip();
+
+    ctx.fillStyle = "#0F3D5C";
+    ctx.fillRect(0,0,800,1000);
+
+    // Decoratieve tegelstrip bovenaan, zelfde motief als in de app-header
+    const tileSize = 28;
+    for(let x = 0; x < 800; x += tileSize){
+      ctx.fillStyle = (Math.floor(x/tileSize) % 2 === 0) ? "#C6362F" : "#1B9AA0";
+      ctx.fillRect(x, 0, tileSize, tileSize);
+    }
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#C9A24B";
+    ctx.font = "600 24px -apple-system, 'Segoe UI', sans-serif";
+    ctx.fillText("TÜRKÇE YOLCULUK", 400, 130);
+
+    ctx.fillStyle = "#FFFDF8";
+    ctx.font = "700 58px -apple-system, 'Segoe UI', sans-serif";
+    ctx.fillText("Mijn week", 400, 202);
+
+    ctx.fillStyle = "#5FC1C4";
+    ctx.font = "500 25px -apple-system, 'Segoe UI', sans-serif";
+    ctx.fillText(formatDutchDateRange(stats.monday, stats.sunday), 400, 244);
+
+    ctx.strokeStyle = "rgba(255,255,255,0.15)";
+    ctx.beginPath(); ctx.moveTo(120,292); ctx.lineTo(680,292); ctx.stroke();
+
+    function drawStat(y, num, label){
+      ctx.fillStyle = "#FFFDF8";
+      ctx.font = "700 92px -apple-system, 'Segoe UI', sans-serif";
+      ctx.fillText(String(num), 400, y);
+      ctx.fillStyle = "#8FA3AC";
+      ctx.font = "500 23px -apple-system, 'Segoe UI', sans-serif";
+      ctx.fillText(label, 400, y + 42);
+    }
+    drawStat(438, stats.total, "items geoefend deze week");
+    drawStat(636, `${stats.daysActive}/7`, "dagen actief deze week");
+    drawStat(834, progress.streak, "dagen op rij (streak)");
+
+    ctx.fillStyle = "rgba(255,255,255,0.4)";
+    ctx.font = "400 18px -apple-system, 'Segoe UI', sans-serif";
+    ctx.fillText("Mijn Turkse taalreis", 400, 950);
+
+    return new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+  }
+
+  function renderHeatmap(){
+    const wrap = document.getElementById("activityHeatmap");
+    if(!wrap) return;
+    wrap.innerHTML = "";
+    const weeks = 14;
+    const totalDays = weeks * 7;
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const dow = (today.getDay() + 6) % 7; // 0 = maandag ... 6 = zondag
+    const endDate = new Date(today);
+    endDate.setDate(endDate.getDate() + (6 - dow)); // komende zondag, zodat elke kolom een volle week is
+    const startDate = new Date(endDate);
+    startDate.setDate(startDate.getDate() - totalDays + 1);
+
+    const fmt = (d) => localDateStr(d);
+
+    for(let w = 0; w < weeks; w++){
+      const col = document.createElement("div");
+      col.className = "heat-week";
+      for(let d = 0; d < 7; d++){
+        const cur = new Date(startDate);
+        cur.setDate(cur.getDate() + w*7 + d);
+        const cell = document.createElement("span");
+        if(cur > today){
+          cell.className = "heat-cell heat-future";
+        } else {
+          const key = fmt(cur);
+          const count = (progress.dailyLog && progress.dailyLog[key]) || 0;
+          let level = 0;
+          if(count >= 15) level = 4;
+          else if(count >= 8) level = 3;
+          else if(count >= 4) level = 2;
+          else if(count >= 1) level = 1;
+          cell.className = "heat-cell heat-" + level;
+          cell.title = `${key}: ${count} geoefend`;
+        }
+        col.appendChild(cell);
+      }
+      wrap.appendChild(col);
+    }
+  }
+
   function renderProgressTab(){
     document.getElementById("statStreak").textContent = progress.streak;
     document.getElementById("statBest").textContent = progress.bestStreak;
@@ -1196,6 +1377,8 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
 
     document.getElementById("lessonsCompletedLabel").textContent = progress.grammar.completed.length;
     document.getElementById("lessonsTotalLabel").textContent = GRAMMAR_LESSONS.length;
+
+    renderHeatmap();
 
     renderBlockList("progressBlockList");
 
@@ -1629,6 +1812,31 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
     progress.dailyGoal = val;
     await saveProgress();
     renderProgressTab();
+  });
+
+  document.getElementById("shareWeekBtn").addEventListener("click", async () => {
+    const btn = document.getElementById("shareWeekBtn");
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "Bezig…";
+    try{
+      const blob = await generateWeekCardBlob();
+      const file = new File([blob], "turkce-week.png", {type:"image/png"});
+      if(navigator.canShare && navigator.canShare({files:[file]})){
+        await navigator.share({files:[file], title:"Mijn Turkse week", text:"Mijn week met Türkçe Yolculuk"});
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url; a.download = "turkce-week.png";
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 3000);
+      }
+    }catch(e){
+      // gebruiker annuleerde het delen (of iets ging mis) — geen harde foutmelding nodig
+    }finally{
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
   });
 
   document.getElementById("resetBtn").addEventListener("click", async () => {
