@@ -290,7 +290,6 @@
           <div id="choicesWrap" class="choices"></div>
           <div id="typeWrap" class="type-row" style="display:none;">
             <input type="text" id="typeInput" placeholder="Typ het antwoord…" autocapitalize="off" autocorrect="off" spellcheck="false">
-            <button id="typeSubmit">Check</button>
           </div>
           <button id="dontKnowBtn" class="dontknow-btn">Ik weet het niet</button>
 
@@ -397,6 +396,10 @@
         <div style="font-size:12.5px;color:var(--ink-soft);margin-top:16px;margin-bottom:8px;font-weight:600;">Moeilijkste woorden</div>
         <div id="difficultList" class="custom-list"></div>
 
+        <div style="font-size:12.5px;color:var(--ink-soft);margin-top:16px;margin-bottom:4px;font-weight:600;">Alleen via meerkeuze gekend</div>
+        <div style="font-size:11.5px;color:var(--ink-soft);margin-bottom:8px;">Deze heb je nog nooit zelf getypt — je herkent ze, maar weet nog niet zeker of je ze ook zelf kunt produceren.</div>
+        <div id="mcOnlyList" class="custom-list"></div>
+
         <div id="storageStatus" style="font-size:11.5px;color:var(--ink-soft);text-align:center;margin-top:14px;">Opslag controleren…</div>
         <button class="reset-btn" id="resetBtn">Voortgang wissen</button>
       </div>
@@ -492,8 +495,11 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
   let progress = null;
   let current = null;
   let currentMode = "mc";
+  let nextBtnAction = "next"; // "check" (bij Typen/Luisteren, vóór antwoord) of "next"
   let currentFilter = "all";
   let retryQueue = []; // {item, remaining} — foute antwoorden komen binnen 3 vragen terug
+  let recentlyShown = []; // ids van net geziene items — voorkomt snelle herhaling binnen kleine blokken
+  let questionsSinceRetryPick = 1; // voorkomt dat de herhaal-wachtrij twee vragen op rij opeist
   let quizState = null;
   let currentLessonIndex = null;
 
@@ -625,6 +631,7 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
     progress.customWords.forEach(c => { if(c.unite === undefined) c.unite = 0; });
     if(!progress.grammar) progress.grammar = { completed: [], scores: {} };
     if(!progress.dailyLog) progress.dailyLog = {};
+    Object.values(progress.wordStats || {}).forEach(s => { if(s.recallCorrect === undefined) s.recallCorrect = 0; });
     // Bewaar maximaal een jaar aan geschiedenis, zodat het bestand niet eindeloos groeit.
     const oneYearAgo = localDateStr(new Date(Date.now() - 365*86400000));
     Object.keys(progress.dailyLog).forEach(d => { if(d < oneYearAgo) delete progress.dailyLog[d]; });
@@ -644,7 +651,8 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
   }
 
   function getStat(id){
-    if(!progress.wordStats[id]) progress.wordStats[id] = {seen:0, correct:0, wrong:0, interval:0, due:null};
+    if(!progress.wordStats[id]) progress.wordStats[id] = {seen:0, correct:0, wrong:0, recallCorrect:0, interval:0, due:null};
+    if(progress.wordStats[id].recallCorrect === undefined) progress.wordStats[id].recallCorrect = 0;
     return progress.wordStats[id];
   }
 
@@ -658,13 +666,19 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
   // Elk woord krijgt een "interval" (aantal dagen tot de volgende herhaling) en
   // een "due"-datum. Bij een goed antwoord groeit het interval (1 -> 2 -> 4-5 -> ...
   // dagen, tot een plafond van 60), bij een fout antwoord valt het terug naar 1 dag.
-  function updateSpacedRepetition(stat, isCorrect){
+  // Een zelf getypt/geluisterd goed antwoord (echte recall) laat het interval sneller
+  // groeien dan een meerkeuze-antwoord (herkenning) — onderzoek laat zien dat
+  // meerkeuze de kennis van een woord met zo'n 20% kan overschatten.
+  function updateSpacedRepetition(stat, isCorrect, viaRecall){
     const today = todayStr();
     if(isCorrect){
       const prevInterval = stat.interval || 0;
-      const nextInterval = prevInterval <= 0 ? 1 : Math.min(60, Math.round(prevInterval * 2.2));
-      stat.interval = nextInterval;
-      stat.due = addDays(today, nextInterval);
+      const growthFactor = viaRecall ? 2.2 : 1.4;
+      // Math.max met "+1" voorkomt dat een lage factor (bij meerkeuze) door afronding
+      // blijft steken op hetzelfde interval — er is altijd minstens 1 dag vooruitgang.
+      const nextInterval = prevInterval <= 0 ? 1 : Math.max(prevInterval + 1, Math.min(60, Math.round(prevInterval * growthFactor)));
+      stat.interval = Math.min(60, nextInterval);
+      stat.due = addDays(today, stat.interval);
     } else {
       stat.interval = 1;
       stat.due = addDays(today, 1);
@@ -830,7 +844,7 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
   function unitePct(n){
     const items = poolForUnite(n);
     if(items.length === 0) return 100;
-    const known = items.filter(i => (progress.wordStats[i.id]||{}).correct >= 2).length;
+    const known = items.filter(i => (progress.wordStats[i.id]||{}).recallCorrect >= 2).length;
     return Math.round((known / items.length) * 100);
   }
 
@@ -873,8 +887,16 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
 
   // ---------- Practice logic ----------
   function pickItem(pool){
+    // Sluit recent geziene items uit, zodat je binnen één sessie niet steeds
+    // hetzelfde kleine groepje woorden terugziet — vooral merkbaar in kleine blokken.
+    // Bij een heel klein blok (waar dat niets zou overlaten) doen we dit niet.
+    const cooldownSize = Math.min(recentlyShown.length, Math.max(0, pool.length - 3));
+    const excludeIds = new Set(recentlyShown.slice(-cooldownSize));
+    const candidatePool = excludeIds.size > 0 ? pool.filter(i => !excludeIds.has(i.id)) : pool;
+    const effectivePool = candidatePool.length > 0 ? candidatePool : pool;
+
     const today = todayStr();
-    const weighted = pool.map(item => {
+    const weighted = effectivePool.map(item => {
       const s = progress.wordStats[item.id];
       let weight;
       if(!s || !s.seen){
@@ -893,6 +915,14 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
       if(r <= 0) return w.item;
     }
     return weighted[weighted.length-1].item;
+  }
+
+  function rememberShown(itemId){
+    recentlyShown.push(itemId);
+    // Houd het venster ongeveer een derde van de huidige poolgrootte, met een plafond,
+    // zodat het bij kleine blokken niet de hele pool blokkeert.
+    const maxWindow = 12;
+    if(recentlyShown.length > maxWindow) recentlyShown = recentlyShown.slice(-maxWindow);
   }
 
   function buildChoices(item, direction, correctAnswer, pool){
@@ -922,6 +952,10 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
   function pickDueRetryItem(pool){
     // Tel eerst iedereen in de wachtrij een vraag af.
     retryQueue.forEach(r => r.remaining--);
+    // Nooit twee vragen op rij gedwongen vanuit de herhaal-wachtrij — anders kan die
+    // wachtrij, als er meerdere woorden tegelijk fout staan, de hele sessie opeisen
+    // en alle variatie wegdrukken (vooral merkbaar in kleine blokken).
+    if(questionsSinceRetryPick < 1) return null;
     // Zoek het langst wachtende item dat "verlopen" is (remaining <= 0) en nog in de huidige pool zit.
     let dueIdx = -1;
     let lowest = Infinity;
@@ -933,6 +967,7 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
     });
     if(dueIdx === -1) return null;
     const [entry] = retryQueue.splice(dueIdx, 1);
+    questionsSinceRetryPick = 0;
     return entry.item;
   }
 
@@ -994,8 +1029,13 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
     document.querySelector(".practice-meta").style.display = "flex";
     document.getElementById("emptyPoolMsg").style.display = "none";
 
-    const item = pickDueRetryItem(pool) || pickItem(pool);
-    const baseDirection = item.kind === "conjugation" ? "fixed" : (Math.random() < 0.5 ? "nl2tr" : "tr2nl");
+    const dueRetryItem = pickDueRetryItem(pool);
+    const item = dueRetryItem || pickItem(pool);
+    if(!dueRetryItem) questionsSinceRetryPick++;
+    rememberShown(item.id);
+    // Nederlands → Turks is de moeilijkere, waardevollere richting (je moet het
+    // Turkse woord zelf produceren i.p.v. herkennen), dus die komt vaker aan bod.
+    const baseDirection = item.kind === "conjugation" ? "fixed" : (Math.random() < 0.65 ? "nl2tr" : "tr2nl");
 
     current = {item, baseDirection, direction: baseDirection, promptText: "", correctAnswer: "", answered:false, pool};
 
@@ -1055,6 +1095,7 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
     }
 
     const {correctAnswer, pool} = current;
+    const nextBtn = document.getElementById("nextBtn");
     if(pres.effectiveMode === "mc"){
       document.getElementById("choicesWrap").style.display = "flex";
       document.getElementById("typeWrap").style.display = "none";
@@ -1068,6 +1109,9 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
         btn.onclick = () => handleAnswer(opt);
         wrap.appendChild(btn);
       });
+      nextBtnAction = "next";
+      nextBtn.textContent = "Volgende →";
+      nextBtn.disabled = true;
     } else {
       document.getElementById("choicesWrap").style.display = "none";
       document.getElementById("typeWrap").style.display = "flex";
@@ -1077,6 +1121,11 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
       input.disabled = false;
       input.placeholder = pres.hidePrompt ? "Wat betekent dit?" : "Typ het antwoord…";
       input.focus();
+      // Bij Typen/Luisteren doet dezelfde onderste knop eerst dienst als "Check",
+      // en verandert na het antwoord vanzelf in "Volgende →" — zelfde plek, geen handbeweging nodig.
+      nextBtnAction = "check";
+      nextBtn.textContent = "Check";
+      nextBtn.disabled = true;
     }
   }
 
@@ -1091,8 +1140,9 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
 
     const stat = getStat(current.item.id);
     stat.seen++;
-    if(isCorrect) stat.correct++; else stat.wrong++;
-    updateSpacedRepetition(stat, isCorrect);
+    const viaRecall = currentMode !== "mc";
+    if(isCorrect){ stat.correct++; if(viaRecall) stat.recallCorrect++; } else { stat.wrong++; }
+    updateSpacedRepetition(stat, isCorrect, viaRecall);
     progress.totalPracticed++;
     logDailyActivity();
 
@@ -1161,6 +1211,8 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
       overrideBtn.style.display = "none";
     }
 
+    nextBtnAction = "next";
+    document.getElementById("nextBtn").textContent = "Volgende →";
     document.getElementById("nextBtn").disabled = false;
     updateModeButtons();
     await saveProgress();
@@ -1208,6 +1260,8 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
       input.disabled = true;
     }
 
+    nextBtnAction = "next";
+    document.getElementById("nextBtn").textContent = "Volgende →";
     document.getElementById("nextBtn").disabled = false;
     updateModeButtons();
     await saveProgress();
@@ -1222,7 +1276,8 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
     const stat = getStat(itemId);
     stat.wrong = Math.max(0, stat.wrong - 1);
     stat.correct++;
-    updateSpacedRepetition(stat, true);
+    stat.recallCorrect++; // override komt alleen voor bij getypte/geluisterde antwoorden
+    updateSpacedRepetition(stat, true, true);
     removeFromRetryQueue(itemId);
     registerCorrectAnswer();
 
@@ -1389,7 +1444,7 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
     document.getElementById("statStreak").textContent = progress.streak;
     document.getElementById("statBest").textContent = progress.bestStreak;
     document.getElementById("statTotal").textContent = progress.totalPracticed;
-    const mastered = Object.values(progress.wordStats).filter(s => s.correct >= 3).length;
+    const mastered = Object.values(progress.wordStats).filter(s => s.recallCorrect >= 3).length;
     document.getElementById("statMastered").textContent = mastered;
     const today = todayStr();
     const due = Object.values(progress.wordStats).filter(s => s.seen && (!s.due || s.due <= today)).length;
@@ -1415,7 +1470,7 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
     cats.forEach(cat => {
       const items = pool.filter(p => p.cat === cat);
       if(items.length === 0) return;
-      const known = items.filter(i => (progress.wordStats[i.id]||{}).correct >= 2).length;
+      const known = items.filter(i => (progress.wordStats[i.id]||{}).recallCorrect >= 2).length;
       const pctCat = Math.round((known / items.length) * 100);
       const row = document.createElement("div");
       row.className = "cat-row";
@@ -1432,7 +1487,7 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
           ["affirmative","negative","question"].forEach(pol => {
             Object.keys(PRONOUN_NL).forEach(person => {
               const id = `c_${verb.inf}_${tense}_${pol}_${person}`;
-              if((progress.wordStats[id]||{}).correct >= 2) known++;
+              if((progress.wordStats[id]||{}).recallCorrect >= 2) known++;
             });
           });
         });
@@ -1464,6 +1519,26 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
         row.className = "custom-item";
         row.innerHTML = `<div class="txt"><div class="tr">${item.tr}</div><div class="nl">${item.nl}</div></div><div class="lesson-status">${stat.wrong}× fout</div>`;
         diffWrap.appendChild(row);
+      });
+    }
+
+    // Woorden die alleen via meerkeuze goed zijn gegaan, nooit via typen/luisteren
+    const mcOnlyEntries = Object.entries(progress.wordStats)
+      .filter(([id, s]) => s.correct > 0 && (s.recallCorrect || 0) === 0)
+      .map(([id, s]) => ({item: itemById[id], stat: s}))
+      .filter(e => !!e.item)
+      .sort((a,b) => b.stat.correct - a.stat.correct)
+      .slice(0, 10);
+    const mcOnlyWrap = document.getElementById("mcOnlyList");
+    mcOnlyWrap.innerHTML = "";
+    if(mcOnlyEntries.length === 0){
+      mcOnlyWrap.innerHTML = '<div class="empty-note">Geen op dit moment.</div>';
+    } else {
+      mcOnlyEntries.forEach(({item, stat}) => {
+        const row = document.createElement("div");
+        row.className = "custom-item";
+        row.innerHTML = `<div class="txt"><div class="tr">${item.tr}</div><div class="nl">${item.nl}</div></div><div class="lesson-status">${stat.correct}× via meerkeuze</div>`;
+        mcOnlyWrap.appendChild(row);
       });
     }
   }
@@ -1802,15 +1877,15 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
     renderAnswerUI();
   });
 
-  document.getElementById("typeSubmit").addEventListener("click", () => {
-    const val = document.getElementById("typeInput").value;
-    if(!val.trim() || current.answered) return;
-    handleAnswer(val);
-  });
   document.getElementById("typeInput").addEventListener("keydown", (e) => {
     if(e.key === "Enter"){
       const val = e.target.value;
       if(val.trim() && !current.answered) handleAnswer(val);
+    }
+  });
+  document.getElementById("typeInput").addEventListener("input", (e) => {
+    if(nextBtnAction === "check" && current && !current.answered){
+      document.getElementById("nextBtn").disabled = !e.target.value.trim();
     }
   });
 
@@ -1822,7 +1897,15 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
     speak(current.promptText, lang);
   });
 
-  document.getElementById("nextBtn").addEventListener("click", () => newQuestion());
+  document.getElementById("nextBtn").addEventListener("click", () => {
+    if(nextBtnAction === "check"){
+      const val = document.getElementById("typeInput").value;
+      if(!val.trim() || current.answered) return;
+      handleAnswer(val);
+    } else {
+      newQuestion();
+    }
+  });
 
   document.getElementById("clearBlockFilter").addEventListener("click", () => {
     currentFilter = "all";
