@@ -118,6 +118,7 @@
   .answer-reveal-label{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.6px; color:var(--ink-soft);}
   .answer-reveal-tr{font-size:25px; font-weight:700; color:var(--bosphorus); margin-top:5px; line-height:1.3;}
   .answer-reveal-nl{font-size:15.5px; color:var(--ink-soft); margin-top:4px; line-height:1.4;}
+  .answer-reveal-why{font-size:12px; color:var(--iznik); background:rgba(27,154,160,0.08); border-radius:8px; padding:8px 10px; margin-top:10px; line-height:1.5; text-align:left;}
 
   .next-btn{margin-top:16px; width:100%; padding:13px; border-radius:12px; border:none; background:var(--tulip); color:white; font-weight:700; font-size:15px; cursor:pointer; font-family:inherit; letter-spacing:0.2px;}
   .next-btn:disabled{background:#E4E2DC; color:#A6A49D; cursor:default;}
@@ -298,6 +299,7 @@
             <div class="answer-reveal-label">Juiste antwoord</div>
             <div class="answer-reveal-tr" id="answerRevealTr"></div>
             <div class="answer-reveal-nl" id="answerRevealNl"></div>
+            <div class="answer-reveal-why" id="answerRevealWhy" style="display:none;"></div>
           </div>
           <button id="overrideCorrectBtn" class="override-btn" style="display:none;">Toch goed rekenen (kleine tikfout)</button>
           <button id="nextBtn" class="next-btn" disabled>Volgende →</button>
@@ -319,6 +321,15 @@
     <section id="tab-grammar" style="display:none;">
       <div id="grammarListView">
         <div class="grammar-progress" id="grammarProgressLabel">0 van 10 lessen voltooid</div>
+        <div class="card" id="practiceConjugationsEntry" style="cursor:pointer;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <div>
+              <div style="font-weight:700;font-size:14.5px;color:var(--bosphorus);">Vervoegingen oefenen</div>
+              <div style="font-size:12px;color:var(--ink-soft);margin-top:2px;">Eén vervoeging tegelijk, gemengd door elkaar — bijv. "ik werk = ...."</div>
+            </div>
+            <div style="font-size:20px;color:var(--iznik);flex-shrink:0;">→</div>
+          </div>
+        </div>
         <div id="lessonList"></div>
       </div>
 
@@ -488,8 +499,85 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
   // ---------- Constants ----------
   const STORAGE_KEY = "turks-progress-v2";
   const PRONOUN_NL = {"ben":"ik","sen":"jij","o":"hij/zij/het","biz":"wij","siz":"jullie","onlar":"zij"};
-  const POLARITY_NL = {"affirmative":"bevestigend","negative":"ontkennend","question":"vragend"};
-  const TENSE_NL = {"present":"tegenwoordige tijd","past":"verleden tijd","future":"toekomende tijd"};
+
+  // Nederlandse vervoeging per werkwoord, zodat de oefenprompt een natuurlijk zinnetje
+  // is ("ik werk", "jij ging", "wij gaan werken") in plaats van een grammatica-label.
+  // ik/jijhij/pl = tegenwoordige tijd; pastSing/pastPl = verleden tijd; inf = infinitief (voor toekomende tijd).
+  const NL_VERB_CONJ = {
+    olmak:     {ik:"word",     jijhij:"wordt",     pl:"worden",     pastSing:"werd",     pastPl:"werden",     inf:"worden"},
+    yapmak:    {ik:"doe",      jijhij:"doet",      pl:"doen",       pastSing:"deed",     pastPl:"deden",      inf:"doen"},
+    gitmek:    {ik:"ga",       jijhij:"gaat",      pl:"gaan",       pastSing:"ging",     pastPl:"gingen",     inf:"gaan"},
+    gelmek:    {ik:"kom",      jijhij:"komt",      pl:"komen",      pastSing:"kwam",     pastPl:"kwamen",     inf:"komen"},
+    görmek:    {ik:"zie",      jijhij:"ziet",      pl:"zien",       pastSing:"zag",      pastPl:"zagen",      inf:"zien"},
+    bilmek:    {ik:"weet",     jijhij:"weet",      pl:"weten",      pastSing:"wist",     pastPl:"wisten",     inf:"weten"},
+    istemek:   {ik:"wil",      jijhij:"wil",       pl:"willen",     pastSing:"wilde",    pastPl:"wilden",     inf:"willen"},
+    almak:     {ik:"koop",     jijhij:"koopt",     pl:"kopen",      pastSing:"kocht",    pastPl:"kochten",    inf:"kopen"},
+    vermek:    {ik:"geef",     jijhij:"geeft",     pl:"geven",      pastSing:"gaf",      pastPl:"gaven",      inf:"geven"},
+    bulmak:    {ik:"vind",     jijhij:"vindt",     pl:"vinden",     pastSing:"vond",     pastPl:"vonden",     inf:"vinden"},
+    bakmak:    {ik:"kijk",     jijhij:"kijkt",     pl:"kijken",     pastSing:"keek",     pastPl:"keken",      inf:"kijken"},
+    konuşmak:  {ik:"spreek",   jijhij:"spreekt",   pl:"spreken",    pastSing:"sprak",    pastPl:"spraken",    inf:"spreken"},
+    anlamak:   {ik:"begrijp",  jijhij:"begrijpt",  pl:"begrijpen",  pastSing:"begreep",  pastPl:"begrepen",   inf:"begrijpen"},
+    yemek:     {ik:"eet",      jijhij:"eet",       pl:"eten",       pastSing:"at",       pastPl:"aten",       inf:"eten"},
+    içmek:     {ik:"drink",    jijhij:"drinkt",    pl:"drinken",    pastSing:"dronk",    pastPl:"dronken",    inf:"drinken"},
+    okumak:    {ik:"lees",     jijhij:"leest",     pl:"lezen",      pastSing:"las",      pastPl:"lazen",      inf:"lezen"},
+    yazmak:    {ik:"schrijf",  jijhij:"schrijft",  pl:"schrijven",  pastSing:"schreef",  pastPl:"schreven",   inf:"schrijven"},
+    çalışmak:  {ik:"werk",     jijhij:"werkt",     pl:"werken",     pastSing:"werkte",   pastPl:"werkten",    inf:"werken"},
+    yaşamak:   {ik:"woon",     jijhij:"woont",     pl:"wonen",      pastSing:"woonde",   pastPl:"woonden",    inf:"wonen"}
+  };
+  // "houden van" is een scheidbare uitdrukking ("er ... van") en past niet in het
+  // algemene sjabloon hierboven, dus die krijgt een eigen, volledig uitgeschreven tabel.
+  const SEVMEK_NL = {
+    present: {
+      affirmative: {ben:"ik hou ervan", sen:"jij houdt ervan", o:"hij houdt ervan", biz:"wij houden ervan", siz:"jullie houden ervan", onlar:"zij houden ervan"},
+      negative:    {ben:"ik hou er niet van", sen:"jij houdt er niet van", o:"hij houdt er niet van", biz:"wij houden er niet van", siz:"jullie houden er niet van", onlar:"zij houden er niet van"},
+      question:    {ben:"hou ik ervan?", sen:"hou jij ervan?", o:"houdt hij ervan?", biz:"houden wij ervan?", siz:"houden jullie ervan?", onlar:"houden zij ervan?"}
+    },
+    past: {
+      affirmative: {ben:"ik hield ervan", sen:"jij hield ervan", o:"hij hield ervan", biz:"wij hielden ervan", siz:"jullie hielden ervan", onlar:"zij hielden ervan"},
+      negative:    {ben:"ik hield er niet van", sen:"jij hield er niet van", o:"hij hield er niet van", biz:"wij hielden er niet van", siz:"jullie hielden er niet van", onlar:"zij hielden er niet van"},
+      question:    {ben:"hield ik ervan?", sen:"hield jij ervan?", o:"hield hij ervan?", biz:"hielden wij ervan?", siz:"hielden jullie ervan?", onlar:"hielden zij ervan?"}
+    },
+    future: {
+      affirmative: {ben:"ik ga ervan houden", sen:"jij gaat ervan houden", o:"hij gaat ervan houden", biz:"wij gaan ervan houden", siz:"jullie gaan ervan houden", onlar:"zij gaan ervan houden"},
+      negative:    {ben:"ik ga er niet van houden", sen:"jij gaat er niet van houden", o:"hij gaat er niet van houden", biz:"wij gaan er niet van houden", siz:"jullie gaan er niet van houden", onlar:"zij gaan er niet van houden"},
+      question:    {ben:"ga ik ervan houden?", sen:"ga jij ervan houden?", o:"gaat hij ervan houden?", biz:"gaan wij ervan houden?", siz:"gaan jullie ervan houden?", onlar:"gaan zij ervan houden?"}
+    }
+  };
+
+  function nlConjugateSentence(verbInf, tense, polarity, person){
+    if(verbInf === "sevmek") return SEVMEK_NL[tense][polarity][person];
+    const v = NL_VERB_CONJ[verbInf];
+    const pronoun = PRONOUN_NL[person].split("/")[0]; // "hij/zij/het" -> "hij" voor natuurlijke zinnen
+    const isSingular = (person === "ben" || person === "sen" || person === "o");
+    const isIk = person === "ben";
+
+    if(tense === "present"){
+      const form = isIk ? v.ik : (isSingular ? v.jijhij : v.pl);
+      if(polarity === "affirmative") return `${pronoun} ${form}`;
+      if(polarity === "negative") return `${pronoun} ${form} niet`;
+      const qForm = person === "sen" ? v.ik : form; // "jij" inversie gebruikt altijd de ik-vorm
+      return `${qForm} ${pronoun}?`;
+    }
+    if(tense === "past"){
+      const form = isSingular ? v.pastSing : v.pastPl;
+      if(polarity === "affirmative") return `${pronoun} ${form}`;
+      if(polarity === "negative") return `${pronoun} ${form} niet`;
+      return `${form} ${pronoun}?`;
+    }
+    // future
+    if(verbInf === "gitmek"){
+      // "ik ga gaan" klinkt dubbelop — hier gebruiken we "zullen" i.p.v. "gaan" als hulpwerkwoord.
+      const zalForm = isSingular ? "zal" : "zullen";
+      if(polarity === "affirmative") return `${pronoun} ${zalForm} ${v.inf}`;
+      if(polarity === "negative") return `${pronoun} ${zalForm} niet ${v.inf}`;
+      return `${zalForm} ${pronoun} ${v.inf}?`;
+    }
+    const gaForm = isIk ? "ga" : (isSingular ? "gaat" : "gaan");
+    if(polarity === "affirmative") return `${pronoun} ${gaForm} ${v.inf}`;
+    if(polarity === "negative") return `${pronoun} ${gaForm} niet ${v.inf}`;
+    const qGa = person === "sen" ? "ga" : gaForm;
+    return `${qGa} ${pronoun} ${v.inf}?`;
+  }
 
   // ---------- State ----------
   let progress = null;
@@ -757,15 +845,13 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
 
   // ---------- Pool building ----------
   function computeUnlockedTenses(){
-    const unlocked = [];
-    if(progress.grammar.completed.includes("l6")) unlocked.push("present");
-    if(progress.grammar.completed.includes("l7")) unlocked.push("past");
-    if(progress.grammar.completed.includes("l8")) unlocked.push("future");
-    return unlocked;
+    // Vervoegingen zijn altijd beschikbaar om te oefenen, ongeacht of de bijbehorende
+    // grammaticales (l6/l7/l8) al is afgerond — geen kunstmatige blokkade meer.
+    return ["present", "past", "future"];
   }
 
   function buildConjugationPrompt(verb, tense, person, polarity){
-    return `"${PRONOUN_NL[person]}" + ${verb.inf} (${verb.nl}) — ${TENSE_NL[tense]}, ${POLARITY_NL[polarity]}`;
+    return nlConjugateSentence(verb.inf, tense, polarity, person);
   }
 
   let _fullPoolCache = null;
@@ -1005,9 +1091,41 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
     };
   }
 
+  // Korte, algemene uitleg per tijd + bevestiging/ontkenning/vraag — alleen relevant
+  // bij vervoegingsoefeningen, dus wordt alleen getoond voor conjugation-items.
+  const CONJ_EXPLAIN = {
+    present: {
+      affirmative: "Tegenwoordige tijd = stam + harmonische klinker (ı/i/u/ü) + yor + persoonsuitgang (die volgt geen klinkerharmonie: altijd -yorum/-yorsun/-yor/-yoruz/-yorsunuz/-yorlar).",
+      negative: "Ontkennende tegenwoordige tijd = stam + m + harmonische klinker + yor + persoonsuitgang (bijv. git-mi-yor-um).",
+      question: "Vragende tegenwoordige tijd = het werkwoord blijft heel, met los erachter altijd 'mu' (want -yor eindigt op een achter-ronde klinker) + persoonsuitgang."
+    },
+    past: {
+      affirmative: "Verleden tijd = stam + d/t (verhardt na een stemloze medeklinker: ç,f,h,k,p,s,ş,t) + harmonische klinker (ı/i/u/ü) + korte persoonsuitgang.",
+      negative: "Ontkennende verleden tijd = stam + -mA (harmonie) + DI + persoonsuitgang.",
+      question: "Vragende verleden tijd = stam + DI + persoonsuitgang, met los erachter 'mi/mı/mu/mü'."
+    },
+    future: {
+      affirmative: "Toekomende tijd = stam + -ecek/-acak (met buffer-y na een klinker) + persoonsuitgang — let op: vóór 'ik' en 'wij' verzacht de k naar ğ.",
+      negative: "Ontkennende toekomende tijd = stam + -mA (harmonie) + -yecek/-yacak + persoonsuitgang (ook hier k→ğ vóór ik/wij).",
+      question: "Vragende toekomende tijd = stam + -ecek/-acak, met los erachter 'mi/mı/mu/mü' + persoonsuitgang (bijv. gidecek miyim?)."
+    }
+  };
+
   function showAnswerRevealCard(item){
     document.getElementById("answerRevealTr").textContent = item.tr;
     document.getElementById("answerRevealNl").textContent = item.nl;
+    const whyEl = document.getElementById("answerRevealWhy");
+    let explanation = null;
+    if(item.kind === "conjugation"){
+      const parts = item.id.split("_"); // c, verbInf, tense, polarity, person
+      explanation = (CONJ_EXPLAIN[parts[2]] || {})[parts[3]];
+    }
+    if(explanation){
+      whyEl.textContent = explanation;
+      whyEl.style.display = "block";
+    } else {
+      whyEl.style.display = "none";
+    }
     document.getElementById("answerRevealCard").style.display = "block";
   }
 
@@ -1965,6 +2083,16 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
     renderLessonList();
   });
 
+  // ---------- Vervoegingen oefenen (springt naar Oefenen, gefilterd) ----------
+  document.getElementById("practiceConjugationsEntry").addEventListener("click", () => {
+    currentFilter = "grammar";
+    document.querySelectorAll(".filter-chip").forEach(c => c.classList.remove("active"));
+    const grammarChip = document.querySelector('.filter-chip[data-filter="grammar"]');
+    if(grammarChip) grammarChip.classList.add("active");
+    switchTab("practice");
+    newQuestion();
+  });
+
   document.getElementById("quizNextBtn").addEventListener("click", () => {
     if(quizState.index + 1 < quizState.questions.length){
       quizState.index++;
@@ -2042,6 +2170,14 @@ const GRAMMAR_LESSONS = [{"id": "l1", "title": "Klinkerharmonie", "explanation":
       if(document.visibilityState === "hidden") saveProgress();
     });
     window.addEventListener("pagehide", () => { saveProgress(); });
+
+    // Registreer de service worker zodat de app ook zonder internet blijft werken.
+    // Werkt alleen op een echte website (https/GitHub Pages) — niet als lokaal bestand
+    // of binnen de Claude.ai-omgeving, vandaar de stille try/catch. Direct aanroepen
+    // (niet wachten op het "load"-event) want dat is op dit punt vaak al voorbij.
+    if("serviceWorker" in navigator){
+      navigator.serviceWorker.register("./sw.js").catch(() => { /* geen offline-ondersteuning beschikbaar, app blijft verder gewoon werken */ });
+    }
   })();
 })();
 </script>
