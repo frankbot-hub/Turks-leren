@@ -242,8 +242,8 @@
     <button class="tab-btn active" data-tab="practice">Oefenen</button>
     <button class="tab-btn" data-tab="blocks">Blokken</button>
     <button class="tab-btn" data-tab="grammar">Grammatica</button>
-    <button class="tab-btn" data-tab="progress">Voortgang</button>
     <button class="tab-btn" data-tab="reading">Lezen</button>
+    <button class="tab-btn" data-tab="progress">Voortgang</button>
   </nav>
 
   <main>
@@ -851,6 +851,16 @@ const GRAMMAR_LESSONS = [{"id":"l1","title":"Klinkerharmonie","explanation":["He
     return prev[n];
   }
 
+  // Na een antwoord kan de kaart flink hoger worden (feedback, antwoordkaart, uitleg),
+  // waardoor de Volgende-knop uit beeld valt. Schuif 'm dan zachtjes in beeld,
+  // zodat je nooit zelf hoeft te scrollen.
+  function scrollButtonIntoView(btnId){
+    requestAnimationFrame(() => {
+      const btn = document.getElementById(btnId);
+      if(btn) btn.scrollIntoView({behavior: "smooth", block: "nearest"});
+    });
+  }
+
   function normalize(str, lang, fold){
     // Afsluitende leestekens (. ! , ?) zijn niet waar het om gaat bij het checken van
     // een antwoord — die worden dus genegeerd, net als de klinkerharmonie-varianten.
@@ -1446,6 +1456,7 @@ const GRAMMAR_LESSONS = [{"id":"l1","title":"Klinkerharmonie","explanation":["He
     document.getElementById("nextBtn").disabled = false;
     updateModeButtons();
     maybeAdvanceConjugationStage(current.item);
+    scrollButtonIntoView("nextBtn");
     await saveProgress();
   }
 
@@ -1476,6 +1487,7 @@ const GRAMMAR_LESSONS = [{"id":"l1","title":"Klinkerharmonie","explanation":["He
     if(input){ input.classList.remove("correct"); input.classList.add("incorrect"); }
 
     showAnswerRevealCard(current.item);
+    scrollButtonIntoView("nextBtn");
     await saveProgress();
   }
 
@@ -1529,6 +1541,7 @@ const GRAMMAR_LESSONS = [{"id":"l1","title":"Klinkerharmonie","explanation":["He
     document.getElementById("nextBtn").disabled = false;
     updateModeButtons();
     maybeAdvanceConjugationStage(current.item);
+    scrollButtonIntoView("nextBtn");
     await saveProgress();
   }
 
@@ -1937,6 +1950,7 @@ const GRAMMAR_LESSONS = [{"id":"l1","title":"Klinkerharmonie","explanation":["He
     quizNextAction = "next";
     document.getElementById("quizNextBtn").textContent = "Volgende →";
     document.getElementById("quizNextBtn").disabled = false;
+    scrollButtonIntoView("quizNextBtn");
     await saveProgress();
   }
 
@@ -2041,6 +2055,7 @@ const GRAMMAR_LESSONS = [{"id":"l1","title":"Klinkerharmonie","explanation":["He
         fb.className = "feedback " + (isRight ? "ok" : "no");
         if(isRight) readingQuizState.correct++;
         document.getElementById("readingQuizNextBtn").disabled = false;
+        scrollButtonIntoView("readingQuizNextBtn");
       };
       wrap.appendChild(btn);
     });
