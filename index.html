@@ -63,22 +63,13 @@
   .brand-mark{width:34px;height:34px;flex-shrink:0;}
   h1{font-family:inherit; font-size:19px; font-weight:700; margin:0; letter-spacing:0.1px;}
   .tagline{font-size:11.5px;color:var(--iznik-light);margin-top:1px;letter-spacing:0.2px;}
-  .streak-simple{text-align:right; line-height:1.15; background:rgba(255,255,255,0.1); border:1px solid rgba(201,162,75,0.5); border-radius:12px; padding:6px 12px;}
-  .streak-num-big{font-size:20px; font-weight:700; font-variant-numeric:tabular-nums; color:var(--gold);}
-  .streak-label-small{display:block; font-size:9.5px; color:rgba(255,255,255,0.7); text-transform:uppercase; letter-spacing:0.5px; margin-top:1px;}
 
   nav.tabs{display:flex; background:var(--bosphorus-deep); position:sticky; top:0; z-index:5;}
   nav.tabs button{flex:1; padding:11px 3px; background:none; border:none; color:rgba(255,255,255,0.55); font-size:11.5px; font-weight:600; cursor:pointer; border-bottom:3px solid transparent; font-family:inherit; letter-spacing:0.1px;}
   nav.tabs button.active{color:var(--tile-white); border-bottom-color:var(--tulip);}
 
-  main{flex:1; padding:18px 16px 40px;}
-  .card{background:var(--card); border-radius:16px; padding:20px 18px; box-shadow:0 2px 12px rgba(15,61,92,0.07); border:1px solid var(--line); margin-bottom:16px;}
-
-  .wod-card{display:flex; align-items:center; justify-content:space-between; gap:10px; background:linear-gradient(135deg, var(--bosphorus), var(--bosphorus-deep)); color:var(--tile-white); border-radius:14px; padding:12px 16px; margin-bottom:14px;}
-  .wod-label{font-size:10.5px; text-transform:uppercase; letter-spacing:0.6px; color:var(--iznik-light); font-weight:700;}
-  .wod-word{font-family:inherit; font-size:18px; font-weight:700; margin-top:2px;}
-  .wod-nl{font-size:12px; color:rgba(255,255,255,0.7); margin-top:1px;}
-  .wod-speak{background:rgba(255,255,255,0.15); border:none; color:white; border-radius:50%; width:32px;height:32px; font-size:14px; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center;}
+  main{flex:1; padding:18px 16px 220px;}
+  .card{background:var(--card); border-radius:16px; padding:16px 18px; box-shadow:0 2px 12px rgba(15,61,92,0.07); border:1px solid var(--line); margin-bottom:16px;}
 
   .filter-row{display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap;}
   .filter-chip{font-size:11.5px; font-weight:600; padding:6px 11px; border-radius:999px; border:1px solid var(--line); background:var(--card); color:var(--ink-soft); cursor:pointer; font-family:inherit;}
@@ -91,7 +82,7 @@
   .mode-toggle button.active{background:var(--signature); color:var(--card); border-color:var(--signature);}
   .mode-toggle button:disabled{opacity:0.4; cursor:default;}
 
-  .prompt-box{text-align:center; padding:18px 4px 22px;}
+  .prompt-box{text-align:center; padding:12px 4px 16px;}
   .prompt-lang{font-size:11px; font-weight:700; letter-spacing:1px; color:var(--ink-soft); text-transform:uppercase;}
   .prompt-word{font-family:inherit; font-size:22px; font-weight:700; color:var(--bosphorus); margin-top:6px; display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; line-height:1.3;}
   .prompt-word.small{font-size:18px;}
@@ -111,6 +102,7 @@
   .type-row button{padding:0 18px; border-radius:12px; border:none; background:var(--signature); color:white; font-weight:700; font-size:14px; cursor:pointer; font-family:inherit;}
 
   .feedback{margin-top:14px; font-size:14px; min-height:20px; text-align:center;}
+  .feedback:empty{margin-top:0; min-height:0;}
   .feedback.ok{color:var(--good); font-weight:700;}
   .feedback.no{color:var(--bad); font-weight:700;}
 
@@ -120,12 +112,15 @@
   .answer-reveal-nl{font-size:15.5px; color:var(--ink-soft); margin-top:4px; line-height:1.4;}
   .answer-reveal-why{font-size:12px; color:var(--iznik); background:rgba(27,154,160,0.08); border-radius:8px; padding:8px 10px; margin-top:10px; line-height:1.5; text-align:left;}
 
-  .next-btn{margin-top:16px; width:100%; padding:13px; border-radius:12px; border:none; background:var(--tulip); color:white; font-weight:700; font-size:15px; cursor:pointer; font-family:inherit; letter-spacing:0.2px;}
+  .next-btn{margin-top:10px; width:100%; padding:13px; border-radius:12px; border:none; background:var(--tulip); color:white; font-weight:700; font-size:15px; cursor:pointer; font-family:inherit; letter-spacing:0.2px;}
   .next-btn:disabled{background:#E4E2DC; color:#A6A49D; cursor:default;}
   .stage-advance-banner{margin-top:12px; padding:12px 14px; border-radius:12px; background:rgba(27,154,160,0.1); border:1px solid rgba(27,154,160,0.3); color:var(--iznik); font-size:13px; font-weight:600; text-align:center; line-height:1.5;}
-  .dontknow-btn{display:block; width:100%; margin-top:12px; padding:12px; border-radius:12px; border:1.5px solid var(--iznik); background:rgba(27,154,160,0.06); color:var(--iznik); font-weight:700; font-size:14px; cursor:pointer; font-family:inherit;}
+  .dontknow-btn{display:block; width:100%; margin-top:8px; padding:11px; border-radius:12px; border:1.5px solid var(--iznik); background:rgba(27,154,160,0.06); color:var(--iznik); font-weight:700; font-size:14px; cursor:pointer; font-family:inherit;}
   .dontknow-btn:active{background:rgba(27,154,160,0.15);}
   .dontknow-btn:disabled{visibility:hidden;}
+  .forgetting-curve{margin-top:12px; padding-top:12px; border-top:1px solid var(--line);}
+  .forgetting-curve-label{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; color:var(--ink-soft); margin-bottom:4px; text-align:left;}
+  .forgetting-curve-caption{font-size:11px; color:var(--ink-soft); margin-top:2px; text-align:left;}
   .markwrong-btn{display:block; width:100%; margin-top:10px; padding:9px; border-radius:10px; border:1.5px dashed var(--bad); background:rgba(198,54,47,0.05); color:var(--bad); font-weight:600; font-size:12.5px; cursor:pointer; font-family:inherit;}
   .markwrong-btn:active{background:rgba(198,54,47,0.12);}
   .empty-pool{text-align:center; color:var(--ink-soft); font-size:13.5px; padding:20px 10px; line-height:1.6;}
@@ -231,10 +226,6 @@
           <div class="tagline">Jouw reis naar Turks, A1–A2</div>
         </div>
       </div>
-      <div class="streak-simple">
-        <span class="streak-num-big" id="streakNum">0</span>
-        <span class="streak-label-small">dagen op rij</span>
-      </div>
     </div>
   </header>
 
@@ -249,16 +240,7 @@
   <main>
     <!-- ================= OEFENEN ================= -->
     <section id="tab-practice">
-      <div id="wodCard" class="wod-card" style="display:none;">
-        <div>
-          <div class="wod-label">Woord van de dag</div>
-          <div class="wod-word" id="wodWord">—</div>
-          <div class="wod-nl" id="wodNl">—</div>
-        </div>
-        <button class="wod-speak" id="wodSpeak" aria-label="Uitspraak beluisteren"><svg viewBox="0 0 24 24" fill="none" width="15" height="15"><path d="M4 9v6h4l5 4V5L8 9H4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M16.5 8.5a5 5 0 0 1 0 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
-      </div>
-
-      <div class="filter-row" id="filterRow">
+      <div class="filter-row" id="filterRow" style="margin-top:2px;">
         <button class="filter-chip active" data-filter="all">Alles</button>
         <button class="filter-chip" data-filter="vocab">Woordenschat</button>
         <button class="filter-chip" data-filter="sentence">Zinnen</button>
@@ -300,6 +282,7 @@
             <div class="answer-reveal-tr" id="answerRevealTr"></div>
             <div class="answer-reveal-nl" id="answerRevealNl"></div>
             <div class="answer-reveal-why" id="answerRevealWhy" style="display:none;"></div>
+            <div class="forgetting-curve" id="forgettingCurveWrap"></div>
           </div>
           <div id="stageAdvanceBanner" class="stage-advance-banner" style="display:none;"></div>
           <button id="nextBtn" class="next-btn" disabled>Volgende →</button>
@@ -313,6 +296,12 @@
           <div class="lap-complete-title">Ronde voltooid!</div>
           <div id="lapCompleteStats" class="lap-complete-stats"></div>
           <button class="start-quiz-btn" id="startNewLapBtn">Nieuwe ronde starten</button>
+        </div>
+
+        <div id="blockCelebrationView" class="lap-complete" style="display:none;">
+          <div class="lap-complete-title" id="blockCelebrationTitle">Blok voltooid!</div>
+          <div class="lap-complete-stats" id="blockCelebrationStats"></div>
+          <button class="start-quiz-btn" id="blockCelebrationBtn">Verder →</button>
         </div>
       </div>
     </section>
@@ -566,6 +555,7 @@ const GRAMMAR_LESSONS = [{"id":"l1","title":"Klinkerharmonie","explanation":["He
   let currentFilter = "all";
   let retryQueue = []; // {item, remaining} — foute antwoorden komen binnen 3 vragen terug
   let sessionDecks = {}; // per filter een geschudde "stapel": {order:[ids], pos, lapAnswered, lapCorrect}
+  let pendingBlockCelebration = null; // {unite, info, nextInfo} als er een melding klaarstaat om te tonen
   let questionsSinceRetryPick = 1; // voorkomt dat de herhaal-wachtrij twee vragen op rij opeist
   let quizState = null;
   let quizNextAction = "next"; // "check" (bij typ-vragen, vóór antwoord) of "next"
@@ -749,6 +739,11 @@ const GRAMMAR_LESSONS = [{"id":"l1","title":"Klinkerharmonie","explanation":["He
     if(!progress.dailyLog) progress.dailyLog = {};
     if(!progress.readingCompleted) progress.readingCompleted = [];
     Object.values(progress.wordStats || {}).forEach(s => { if(s.recallCorrect === undefined) s.recallCorrect = 0; });
+    if(!progress.blockCelebrated){
+      // Voor bestaande gebruikers: blokken die al eerder de 60%-drempel haalden niet
+      // alsnog met terugwerkende kracht vieren, alleen toekomstige nieuwe mijlpalen.
+      progress.blockCelebrated = UNITE_INFO.filter(u => unitePct(u.unite) >= 60).map(u => u.unite);
+    }
     if(progress.conjugationStage === undefined){
       progress.conjugationStage = 0;
       // Als je al veel vervoegingen kende vóórdat deze opbouw bestond, hoef je niet
@@ -774,8 +769,9 @@ const GRAMMAR_LESSONS = [{"id":"l1","title":"Klinkerharmonie","explanation":["He
   }
 
   function getStat(id){
-    if(!progress.wordStats[id]) progress.wordStats[id] = {seen:0, correct:0, wrong:0, recallCorrect:0, interval:0, due:null};
+    if(!progress.wordStats[id]) progress.wordStats[id] = {seen:0, correct:0, wrong:0, recallCorrect:0, interval:0, due:null, lastWasCorrect:null};
     if(progress.wordStats[id].recallCorrect === undefined) progress.wordStats[id].recallCorrect = 0;
+    if(progress.wordStats[id].lastWasCorrect === undefined) progress.wordStats[id].lastWasCorrect = null;
     return progress.wordStats[id];
   }
 
@@ -816,7 +812,6 @@ const GRAMMAR_LESSONS = [{"id":"l1","title":"Klinkerharmonie","explanation":["He
       progress.lastStreakDate = t;
       if(progress.streak > progress.bestStreak) progress.bestStreak = progress.streak;
     }
-    document.getElementById("streakNum").textContent = progress.streak;
   }
 
   function stripTurkishDiacritics(str){
@@ -852,13 +847,18 @@ const GRAMMAR_LESSONS = [{"id":"l1","title":"Klinkerharmonie","explanation":["He
   }
 
   // Na een antwoord kan de kaart flink hoger worden (feedback, antwoordkaart, uitleg),
-  // waardoor de Volgende-knop uit beeld valt. Schuif 'm dan zachtjes in beeld,
-  // zodat je nooit zelf hoeft te scrollen.
+  // waardoor de Volgende-knop uit beeld valt. Schuif het scherm dan naar een vaste,
+  // voorspelbare hoogte (ongeveer waar de Check-knop tijdens het typen ook staat) —
+  // zodat je steeds op dezelfde plek terechtkomt en meteen door kunt. We wachten even
+  // tot het toetsenbord (indien open) is dichtgeklapt, anders klopt de eindpositie niet.
   function scrollButtonIntoView(btnId){
-    requestAnimationFrame(() => {
+    setTimeout(() => {
       const btn = document.getElementById(btnId);
-      if(btn) btn.scrollIntoView({behavior: "smooth", block: "nearest"});
-    });
+      if(!btn) return;
+      const rect = btn.getBoundingClientRect();
+      const targetY = window.innerHeight * 0.42;
+      window.scrollBy({top: rect.top - targetY, behavior: "smooth"});
+    }, 320);
   }
 
   function normalize(str, lang, fold){
@@ -962,6 +962,10 @@ const GRAMMAR_LESSONS = [{"id":"l1","title":"Klinkerharmonie","explanation":["He
   function isDifficultItem(item){
     const s = progress.wordStats[item.id];
     if(!s || !s.seen) return false;
+    // Zodra je laatste poging goed was, is een woord niet meer "actief moeilijk" —
+    // ook al stond het ooit een tijdje in de min. Zo blijft het niet voor altijd
+    // hangen in de Moeilijk-filter en de "denk je dat je dit weet?"-vraag.
+    if(s.lastWasCorrect) return false;
     return s.wrong >= 2 || (s.wrong > 0 && s.wrong >= s.correct);
   }
 
@@ -1016,6 +1020,20 @@ const GRAMMAR_LESSONS = [{"id":"l1","title":"Klinkerharmonie","explanation":["He
   function isBlockUnlocked(n){
     if(n <= 1) return true; // basiswoorden en ünite 1 staan altijd open
     return unitePct(n - 1) >= 60;
+  }
+
+  // Checkt na een antwoord of het blok van dit item zojuist de 60%-ontgrendeldrempel
+  // heeft gehaald, en zet zo ja een melding klaar om te tonen vóór de volgende vraag.
+  function checkBlockCelebration(item){
+    if(!item || item.unite === undefined) return;
+    const n = item.unite;
+    if(progress.blockCelebrated.includes(n)) return;
+    if(unitePct(n) >= 60){
+      progress.blockCelebrated.push(n);
+      const info = UNITE_INFO.find(u => u.unite === n);
+      const nextInfo = UNITE_INFO.find(u => u.unite === n + 1);
+      pendingBlockCelebration = {info, nextInfo};
+    }
   }
 
   function renderBlockList(targetId){
@@ -1213,10 +1231,55 @@ const GRAMMAR_LESSONS = [{"id":"l1","title":"Klinkerharmonie","explanation":["He
     } else {
       whyEl.style.display = "none";
     }
+    renderForgettingCurve(getStat(item.id));
     document.getElementById("answerRevealCard").style.display = "block";
   }
 
+  // Toont, na een fout antwoord, een klein grafiekje van de "vergeetcurve": hoe zeker
+  // het systeem is dat je dit woord nog weet, aflopend tot de volgende herhaaldatum.
+  // Maakt tastbaar waaróm een woord juist dán weer terugkomt.
+  function renderForgettingCurve(stat){
+    const wrap = document.getElementById("forgettingCurveWrap");
+    const interval = Math.max(1, stat.interval || 1);
+    const targetRetention = 0.85; // rond dit niveau plant het systeem de volgende herhaling in
+    const stability = -interval / Math.log(targetRetention);
+
+    const w = 264, h = 66, pad = 4;
+    const steps = 24;
+    let path = "";
+    for(let i = 0; i <= steps; i++){
+      const t = (i / steps) * interval;
+      const retention = Math.exp(-t / stability);
+      const x = pad + (t / interval) * (w - pad*2);
+      const y = pad + (1 - retention) * (h - pad*2);
+      path += (i === 0 ? "M" : "L") + x.toFixed(1) + "," + y.toFixed(1) + " ";
+    }
+
+    wrap.innerHTML = `
+      <div class="forgetting-curve-label">Vergeetcurve tot de volgende herhaling</div>
+      <svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" preserveAspectRatio="none">
+        <line x1="${pad}" y1="${h-pad}" x2="${w-pad}" y2="${h-pad}" stroke="var(--line)" stroke-width="1"/>
+        <path d="${path}" fill="none" stroke="var(--bad)" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <div class="forgetting-curve-caption">Vandaag onthouden → over ${interval} ${interval === 1 ? "dag" : "dagen"} plant de app 'm weer in, vlak voor je 'm dreigt te vergeten.</div>
+    `;
+  }
+
   function newQuestion(){
+    if(pendingBlockCelebration){
+      const {info, nextInfo} = pendingBlockCelebration;
+      document.getElementById("practiceBody").style.display = "none";
+      document.querySelector(".practice-meta").style.display = "none";
+      document.getElementById("emptyPoolMsg").style.display = "none";
+      document.getElementById("lapCompleteView").style.display = "none";
+      document.getElementById("blockCelebrationTitle").textContent = `${info ? info.title : "Blok"} voltooid!`;
+      document.getElementById("blockCelebrationStats").textContent = nextInfo
+        ? `Je kent nu genoeg van dit blok — "${nextInfo.title}" is ontgrendeld.`
+        : "Je kent nu genoeg van dit blok om verder te gaan.";
+      document.getElementById("blockCelebrationView").style.display = "block";
+      return;
+    }
+
     const fullPool = buildFullPool();
     const pool = filterPool(fullPool, currentFilter);
 
@@ -1224,6 +1287,7 @@ const GRAMMAR_LESSONS = [{"id":"l1","title":"Klinkerharmonie","explanation":["He
       document.getElementById("practiceBody").style.display = "none";
       document.querySelector(".practice-meta").style.display = "none";
       document.getElementById("lapCompleteView").style.display = "none";
+      document.getElementById("blockCelebrationView").style.display = "none";
       const emptyMsg = document.getElementById("emptyPoolMsg");
       emptyMsg.textContent = currentFilter === "difficult"
         ? "Geen moeilijke woorden op dit moment — goed bezig! Woorden komen hier terecht zodra je ze een paar keer fout hebt."
@@ -1386,6 +1450,7 @@ const GRAMMAR_LESSONS = [{"id":"l1","title":"Klinkerharmonie","explanation":["He
     stat.seen++;
     const viaRecall = currentMode !== "mc";
     if(isCorrect){ stat.correct++; if(viaRecall) stat.recallCorrect++; } else { stat.wrong++; }
+    stat.lastWasCorrect = isCorrect;
     updateSpacedRepetition(stat, isCorrect, viaRecall);
     progress.totalPracticed++;
     logDailyActivity();
@@ -1456,6 +1521,7 @@ const GRAMMAR_LESSONS = [{"id":"l1","title":"Klinkerharmonie","explanation":["He
     document.getElementById("nextBtn").disabled = false;
     updateModeButtons();
     maybeAdvanceConjugationStage(current.item);
+    checkBlockCelebration(current.item);
     scrollButtonIntoView("nextBtn");
     await saveProgress();
   }
@@ -1470,6 +1536,7 @@ const GRAMMAR_LESSONS = [{"id":"l1","title":"Klinkerharmonie","explanation":["He
     stat.correct = Math.max(0, stat.correct - 1);
     stat.recallCorrect = Math.max(0, stat.recallCorrect - 1); // tikfout-vergeving is alleen bij getypte/geluisterde antwoorden
     stat.wrong++;
+    stat.lastWasCorrect = false;
     updateSpacedRepetition(stat, false);
     addToRetryQueue(current.item);
 
@@ -1499,6 +1566,7 @@ const GRAMMAR_LESSONS = [{"id":"l1","title":"Klinkerharmonie","explanation":["He
     const stat = getStat(current.item.id);
     stat.seen++;
     stat.wrong++;
+    stat.lastWasCorrect = false;
     updateSpacedRepetition(stat, false);
     progress.totalPracticed++;
     logDailyActivity();
@@ -1541,19 +1609,9 @@ const GRAMMAR_LESSONS = [{"id":"l1","title":"Klinkerharmonie","explanation":["He
     document.getElementById("nextBtn").disabled = false;
     updateModeButtons();
     maybeAdvanceConjugationStage(current.item);
+    checkBlockCelebration(current.item);
     scrollButtonIntoView("nextBtn");
     await saveProgress();
-  }
-
-  // ---------- Word of the day ----------
-  function renderWordOfDay(){
-    const pool = [...VOCAB, ...SENTENCES];
-    const dayIndex = Math.floor(Date.now() / 86400000);
-    const item = pool[dayIndex % pool.length];
-    document.getElementById("wodWord").textContent = item.tr;
-    document.getElementById("wodNl").textContent = item.nl;
-    document.getElementById("wodCard").style.display = "flex";
-    document.getElementById("wodSpeak").onclick = () => speak(item.tr, "tr");
   }
 
   // ---------- Progress tab ----------
@@ -2159,6 +2217,12 @@ const GRAMMAR_LESSONS = [{"id":"l1","title":"Klinkerharmonie","explanation":["He
     newQuestion();
   });
 
+  document.getElementById("blockCelebrationBtn").addEventListener("click", () => {
+    pendingBlockCelebration = null;
+    document.getElementById("blockCelebrationView").style.display = "none";
+    newQuestion();
+  });
+
   document.getElementById("speakBtn").addEventListener("click", () => {
     if(!current) return;
     const lang = current.item.kind === "conjugation" ? "nl" : (current.direction === "nl2tr" ? "nl" : "tr");
@@ -2221,7 +2285,6 @@ const GRAMMAR_LESSONS = [{"id":"l1","title":"Klinkerharmonie","explanation":["He
     try{ await storageDelete(STORAGE_KEY); }catch(e){}
     progress = defaultProgress();
     retryQueue = [];
-    document.getElementById("streakNum").textContent = progress.streak;
     renderProgressTab();
   });
 
@@ -2335,8 +2398,6 @@ const GRAMMAR_LESSONS = [{"id":"l1","title":"Klinkerharmonie","explanation":["He
 
   (async function init(){
     await loadProgress();
-    document.getElementById("streakNum").textContent = progress.streak;
-    renderWordOfDay();
     newQuestion();
     checkStorageStatus();
     document.getElementById("loading").style.display = "none";
@@ -2348,6 +2409,24 @@ const GRAMMAR_LESSONS = [{"id":"l1","title":"Klinkerharmonie","explanation":["He
       if(document.visibilityState === "hidden") saveProgress();
     });
     window.addEventListener("pagehide", () => { saveProgress(); });
+
+    // Op iOS toont Safari een eigen werkbalk vlak boven het toetsenbord (vorige/
+    // volgende-veld-pijltjes + "Klaar"). Die neemt ruimte in die de pagina zelf niet
+    // kent, waardoor een knop onderaan het scherm daarachter kan wegvallen. We houden
+    // daarom extra ruimte vrij zodra het toetsenbord open lijkt te staan.
+    if(window.visualViewport){
+      let keyboardPadding = false;
+      const adjustForKeyboard = () => {
+        const shrink = window.innerHeight - window.visualViewport.height;
+        const isKeyboardOpen = shrink > 120; // een toetsenbord neemt altijd veel meer ruimte in dan dit
+        if(isKeyboardOpen !== keyboardPadding){
+          keyboardPadding = isKeyboardOpen;
+          document.body.style.paddingBottom = isKeyboardOpen ? "56px" : "";
+        }
+      };
+      window.visualViewport.addEventListener("resize", adjustForKeyboard);
+      window.visualViewport.addEventListener("scroll", adjustForKeyboard);
+    }
 
     // Registreer de service worker zodat de app ook zonder internet blijft werken.
     // Werkt alleen op een echte website (https/GitHub Pages) — niet als lokaal bestand
