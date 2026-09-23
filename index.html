@@ -673,7 +673,15 @@ const GRAMMAR_LESSONS = [{"id":"l1","title":"Klinkerharmonie","explanation":["He
   function stageMasteryPct(stageIndex){
     const ids = stageItemIds(stageIndex);
     if(ids.length === 0) return 0;
-    const known = ids.filter(id => (progress.wordStats[id]||{}).recallCorrect >= 2).length;
+    // Telt elk goed beantwoord vervoegings-item mee, ongeacht of dat in
+    // meerkeuze- of typ-modus was. Vroeger telde alleen "recallCorrect"
+    // (dus 2x goed getypt/geluisterd) mee, en stond de teller op 0 zolang je
+    // in de (standaard actieve) meerkeuze-modus oefende — dat maakte 60%
+    // vrijwel onhaalbaar. Eén keer goed is nu genoeg om als "gekend" te
+    // tellen; het spaced-repetition-systeem brengt gemiste vormen vanzelf
+    // terug, dus dit is geen verlies aan herhaling, alleen een realistischer
+    // maatstaf voor "genoeg beheerst om door te gaan".
+    const known = ids.filter(id => (progress.wordStats[id]||{}).correct >= 1).length;
     return Math.round((known / ids.length) * 100);
   }
 
@@ -2755,4 +2763,4 @@ const GRAMMAR_LESSONS = [{"id":"l1","title":"Klinkerharmonie","explanation":["He
 })();
 </script>
 </body>
-</html>
+</ht
